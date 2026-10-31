@@ -135,6 +135,104 @@ def make_jpeg(
     return path
 
 
+def _tiff_from_jpeg(jpeg: bytes) -> bytes:
+    """Pull the raw TIFF block out of a JPEG built by make_jpeg."""
+    index = jpeg.find(b"Exif\x00\x00")
+    return jpeg[index + 6 : -2]  # drop the trailing EOI marker
+
+
+def make_heic(path: Path, decoy: bool = True, **kwargs) -> Path:
+    """A minimal HEIC-shaped file carrying a real EXIF block.
+
+    Not a decodable image: it exercises the container detection and the
+    marker search, which is all this parser touches. When `decoy` is set the
+    literal "Exif\\0\\0" also appears earlier without a TIFF header after it,
+    exactly as it does in the metadata boxes of a real iPhone photograph.
+    """
+    jpeg = make_jpeg(path.with_suffix(".tmp"), **kwargs).read_bytes()
+    tiff = _tiff_from_jpeg(jpeg)
+    path.with_suffix(".tmp").unlink()
+
+    header = struct.pack(">I", 0x18) + b"ftypheic" + b"\x00" * 12
+    trap = b"Exif\x00\x00\x00\x01\xa0iref" if decoy else b""
+    path.write_bytes(header + trap + b"\x00" * 32 + b"Exif\x00\x00" + tiff)
+    return path
+
+
+def make_png(path: Path, **kwargs) -> Path:
+    """A PNG whose eXIf chunk holds the EXIF block."""
+    jpeg = make_jpeg(path.with_suffix(".tmp"), **kwargs).read_bytes()
+    tiff = _tiff_from_jpeg(jpeg)
+    path.with_suffix(".tmp").unlink()
+
+    def chunk(kind: bytes, payload: bytes) -> bytes:
+        import zlib
+
+        return (
+            struct.pack(">I", len(payload))
+            + kind
+            + payload
+            + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
+        )
+
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+    path.write_bytes(
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"eXIf", tiff)
+        + chunk(b"IEND", b"")
+    )
+    return path
+
+
+class TestHeicAndPng(unittest.TestCase):
+    """Formats the field photographs actually arrive in."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self._tmp.name)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_heic_position(self) -> None:
+        path = make_heic(self.dir / "a.heic", lat=43.18696, lon=77.00465)
+        got = read_location(path)
+        self.assertAlmostEqual(got.lat, 43.18696, places=4)
+        self.assertAlmostEqual(got.lon, 77.00465, places=4)
+
+    def test_heic_decoy_marker_is_skipped(self) -> None:
+        """The first "Exif\\0\\0" in a real HEIC is not the EXIF block.
+
+        Taking it without checking for a TIFF header after it is the bug this
+        guards: it does not raise, it returns wrong coordinates.
+        """
+        with_decoy = make_heic(self.dir / "b.heic", decoy=True, lat=43.25, lon=76.75)
+        without = make_heic(self.dir / "c.heic", decoy=False, lat=43.25, lon=76.75)
+        self.assertAlmostEqual(
+            read_location(with_decoy).lat, read_location(without).lat, places=6
+        )
+        self.assertAlmostEqual(read_location(with_decoy).lat, 43.25, places=5)
+
+    def test_png_exif_chunk(self) -> None:
+        path = make_png(self.dir / "d.png", lat=43.25, lon=76.75)
+        got = read_location(path)
+        self.assertAlmostEqual(got.lat, 43.25, places=5)
+
+    def test_png_screenshot_has_time_but_no_position(self) -> None:
+        """A map screenshot: EXIF present, GPS absent. Must not raise."""
+        path = make_png(self.dir / "e.png", taken="2026:10:25 14:24:19")
+        got = read_location(path)
+        self.assertFalse(got.has_position)
+        self.assertEqual(got.taken_at.hour, 14)
+
+    def test_png_without_exif_chunk_raises(self) -> None:
+        path = self.dir / "f.png"
+        path.write_bytes(b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 0) + b"IEND" + b"\x00" * 4)
+        with self.assertRaises(ExifError):
+            read_location(path)
+
+
 class TestExifGps(unittest.TestCase):
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -179,13 +277,13 @@ class TestExifGps(unittest.TestCase):
             lat=43.25,
             lon=76.75,
             taken="2026:04:12 09:30:00",
-            offset="+06:00",
+            offset="+05:00",
         )
         got = read_location(path)
         self.assertIsNotNone(got.taken_at)
         self.assertEqual(got.taken_at.year, 2026)
         self.assertEqual(got.taken_at.hour, 9)
-        self.assertEqual(got.taken_at.utcoffset(), timedelta(hours=6))
+        self.assertEqual(got.taken_at.utcoffset(), timedelta(hours=5))
 
     def test_timestamp_without_offset_is_naive(self) -> None:
         path = make_jpeg(

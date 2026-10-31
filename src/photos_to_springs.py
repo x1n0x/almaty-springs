@@ -36,11 +36,14 @@ FIELDNAMES = [
     "confidence", "osm_id", "notes",
 ]
 
-# .heic / .heif hold EXIF in an ISO-BMFF container, not a JPEG APP1 segment.
-# They are listed so the report can tell the user to export them as JPEG
-# rather than silently ignoring half their photographs.
-JPEG_SUFFIXES = {".jpg", ".jpeg", ".jpe", ".tif", ".tiff"}
-UNSUPPORTED_SUFFIXES = {".heic", ".heif", ".dng", ".cr2", ".nef", ".arw", ".png", ".webp"}
+PHOTO_SUFFIXES = {
+    ".jpg", ".jpeg", ".jpe", ".tif", ".tiff",
+    ".heic", ".heif", ".avif",  # iPhone default format
+    ".png",                     # screenshots: usually a timestamp, no GPS
+}
+# Raw formats wrap TIFF in vendor containers; not worth supporting while every
+# camera that produces them also writes a JPEG or HEIC alongside.
+UNSUPPORTED_SUFFIXES = {".dng", ".cr2", ".cr3", ".nef", ".arw", ".raf", ".orf", ".webp"}
 
 
 def haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -78,8 +81,12 @@ def group_photos(
     return groups
 
 
-def scan(folder: Path) -> tuple[list[PhotoLocation], list[tuple[Path, str]]]:
+def scan(
+    folder: Path,
+) -> tuple[list[PhotoLocation], list[PhotoLocation], list[tuple[Path, str]]]:
+    """Return (photos with GPS, photos without GPS, unreadable files)."""
     located: list[PhotoLocation] = []
+    no_gps: list[PhotoLocation] = []
     problems: list[tuple[Path, str]] = []
 
     files = sorted(p for p in folder.rglob("*") if p.is_file())
@@ -88,7 +95,7 @@ def scan(folder: Path) -> tuple[list[PhotoLocation], list[tuple[Path, str]]]:
         if suffix in UNSUPPORTED_SUFFIXES:
             problems.append((path, f"{suffix} is not readable by this script"))
             continue
-        if suffix not in JPEG_SUFFIXES:
+        if suffix not in PHOTO_SUFFIXES:
             continue
         try:
             photo = read_location(path)
@@ -99,17 +106,40 @@ def scan(folder: Path) -> tuple[list[PhotoLocation], list[tuple[Path, str]]]:
             problems.append((path, f"could not read file: {exc}"))
             continue
 
-        if photo.has_position:
-            located.append(photo)
-        else:
-            problems.append((path, "EXIF present but no GPS position"))
+        (located if photo.has_position else no_gps).append(photo)
 
-    return located, problems
+    return located, no_gps, problems
 
 
-def build_rows(groups: list[list[PhotoLocation]], start_id: int) -> list[dict]:
+def group_by_folder(
+    photos: list[PhotoLocation], root: Path
+) -> list[tuple[str, list[PhotoLocation]]]:
+    """Group photos by the subfolder they sit in.
+
+    When someone has already sorted their photographs into a folder per site,
+    that grouping is better evidence than anything inferred from distance: it
+    records what the photographer meant, and it keeps a shot taken on the
+    approach in the right site instead of spawning a spurious one.
+    """
+    groups: dict[str, list[PhotoLocation]] = {}
+    for photo in photos:
+        try:
+            relative = photo.path.relative_to(root)
+        except ValueError:
+            relative = photo.path
+        label = relative.parts[0] if len(relative.parts) > 1 else root.name
+        groups.setdefault(label, []).append(photo)
+    return sorted(groups.items())
+
+
+def build_rows(
+    groups: list[tuple[str, list[PhotoLocation]]],
+    start_id: int,
+    extras: dict[str, list[PhotoLocation]] | None = None,
+) -> list[dict]:
+    extras = extras or {}
     rows: list[dict] = []
-    for index, group in enumerate(groups):
+    for index, (label, group) in enumerate(groups):
         lat = statistics.median(p.lat for p in group)
         lon = statistics.median(p.lon for p in group)
 
@@ -124,10 +154,15 @@ def build_rows(groups: list[list[PhotoLocation]], start_id: int) -> list[dict]:
                 haversine_m(lat, lon, p.lat, p.lon) for p in group
             )
 
-        notes = [f"photos={len(group)}"]
+        notes = [f"folder={label}", f"photos={len(group)}"]
         notes.append("files=" + "|".join(sorted(p.path.name for p in group)))
+        companions = extras.get(label, [])
+        if companions:
+            notes.append(
+                "no_gps=" + "|".join(sorted(p.path.name for p in companions))
+            )
         if spread:
-            notes.append(f"photo_spread_m={spread:.1f}")
+            notes.append(f"photo_spread_m={spread:.0f}")
         if altitudes:
             notes.append(f"gps_alt_m={statistics.median(altitudes):.0f}")
         if dops:
@@ -139,6 +174,7 @@ def build_rows(groups: list[list[PhotoLocation]], start_id: int) -> list[dict]:
         row.update(
             {
                 "spring_id": f"ALA-{start_id + index:04d}",
+                "name_local": label,
                 "lat": f"{lat:.5f}",
                 "lon": f"{lon:.5f}",
                 # GPS altitude from a phone is barometric or satellite-derived
@@ -163,10 +199,16 @@ def main() -> int:
         "--out", type=Path, default=Path("data/raw/from_photos.csv"), help="output CSV"
     )
     parser.add_argument(
+        "--group-by",
+        choices=("folder", "distance"),
+        default="folder",
+        help="how to decide which photos belong to one spring (default: folder)",
+    )
+    parser.add_argument(
         "--group-radius",
         type=float,
         default=50.0,
-        help="photos within this many metres are treated as one spring (default: 50)",
+        help="for --group-by distance: photos within this many metres are one spring",
     )
     parser.add_argument(
         "--start-id", type=int, default=1, help="first ALA-#### number to assign"
@@ -178,19 +220,34 @@ def main() -> int:
         return 1
 
     print(f"Scanning {args.folder}")
-    located, problems = scan(args.folder)
-    print(f"  {len(located)} photo(s) with GPS, {len(problems)} skipped")
+    located, no_gps, problems = scan(args.folder)
+    print(
+        f"  {len(located)} photo(s) with GPS, "
+        f"{len(no_gps)} without, {len(problems)} unreadable"
+    )
 
     if not located:
         print("\nNo geotagged photographs found.", file=sys.stderr)
-        if problems:
-            print("Skipped files:", file=sys.stderr)
-            for path, why in problems[:20]:
-                print(f"  {path.name}: {why}", file=sys.stderr)
+        for path, why in problems[:20]:
+            print(f"  {path.name}: {why}", file=sys.stderr)
         return 1
 
-    groups = group_photos(located, args.group_radius)
-    rows = build_rows(groups, args.start_id)
+    if args.group_by == "folder":
+        groups = group_by_folder(located, args.folder)
+        extras = {
+            label: photos
+            for label, photos in group_by_folder(no_gps, args.folder)
+        }
+        print(f"  grouped by folder: {len(groups)} site(s)")
+    else:
+        groups = [
+            (f"group-{i + 1}", g)
+            for i, g in enumerate(group_photos(located, args.group_radius))
+        ]
+        extras = {}
+        print(f"  grouped within {args.group_radius:.0f} m: {len(groups)} site(s)")
+
+    rows = build_rows(groups, args.start_id, extras)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", newline="", encoding="utf-8") as handle:
@@ -200,21 +257,30 @@ def main() -> int:
 
     print(f"\n{len(groups)} spring(s) from {len(located)} photo(s):")
     for row in rows:
-        detail = row["notes"].split("; ")[0]
-        stamp = row["measured_at"][:16] or "no timestamp"
-        print(f"  {row['spring_id']}  {row['lat']}, {row['lon']}  {detail}  {stamp}")
+        fields = dict(
+            part.split("=", 1) for part in row["notes"].split("; ") if "=" in part
+        )
+        spread = fields.get("photo_spread_m")
+        detail = f"{fields.get('photos', '?')} photos"
+        if spread:
+            detail += f", spread {spread} m"
+        print(
+            f"  {row['spring_id']}  {row['name_local']:12}  "
+            f"{row['lat']}, {row['lon']}  {detail}  {row['measured_at'][:16]}"
+        )
+
+    if no_gps:
+        print(f"\n{len(no_gps)} photo(s) without GPS, recorded per site in notes:")
+        for photo in no_gps[:10]:
+            stamp = photo.taken_at.isoformat()[:16] if photo.taken_at else "no time"
+            print(f"  {photo.path.name}  {stamp}")
 
     if problems:
-        print(f"\nSkipped {len(problems)} file(s):")
-        shown = problems[:15]
-        for path, why in shown:
+        print(f"\n{len(problems)} unreadable file(s):")
+        for path, why in problems[:15]:
             print(f"  {path.name}: {why}")
-        if len(problems) > len(shown):
-            print(f"  ... and {len(problems) - len(shown)} more")
-        if any(p.suffix.lower() in (".heic", ".heif") for p, _ in problems):
-            print("\n  HEIC/HEIF photos need exporting as JPEG first.")
-            print("  On iPhone: Settings > Camera > Formats > Most Compatible,")
-            print("  or export copies as JPEG when downloading from the cloud.")
+        if len(problems) > 15:
+            print(f"  ... and {len(problems) - 15} more")
 
     print(f"\nWrote {args.out}")
     print("\nNext:")

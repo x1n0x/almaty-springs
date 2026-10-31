@@ -122,6 +122,7 @@ in spatial results only with the exclusion stated.
 ```
 data/
   raw/                  Unmodified source extracts (gitignored)
+  field/                Primary field records -- tracked, not reproducible
   interim/              Cleaned, not yet joined
   processed/            Analysis-ready tables (gitignored)
   springs_template.csv  Empty template defining the canonical schema
@@ -129,7 +130,8 @@ data/
 
 src/
   photos_to_springs.py  Turn geotagged field photos into spring records
-  exif_gps.py           Minimal EXIF reader (standard library only)
+  exif_gps.py           EXIF reader for JPEG/HEIC/PNG (standard library only)
+  match_osm.py          Match visited springs against the OSM extract
   fetch_osm_springs.py  Pull spring features from the Overpass API
   enrich_elevation.py   Attach DEM elevation to spring coordinates
   validate.py           Schema and range checks on the spring table
@@ -188,8 +190,13 @@ python src/enrich_elevation.py data/raw/from_photos.csv --backend api
 python src/validate.py data/raw/from_photos.csv
 ```
 
-Photographs within 50 m of each other are grouped into one spring and given the
-group's median position. GPS altitude from a phone is kept only as a note: it
+Photographs are grouped by the subfolder they sit in, because a photographer
+who has already sorted their shots into a folder per site has recorded better
+evidence than any distance rule can infer. `--group-by distance` falls back to
+clustering within `--group-radius` metres. Either way the site's position is
+the group's **median**, not its mean: on the first real run one site had a
+photo taken 222 m away on the approach, and a mean would have dragged the
+outlet's coordinates toward it. GPS altitude from a phone is kept only as a note: it
 is routinely tens of metres out, so `elevation_m` is filled from the DEM
 instead. Every row lands as `candidate` — a photograph proves someone stood
 somewhere, not that what they photographed is a spring.
@@ -222,7 +229,8 @@ python src/validate.py data/raw/osm_springs.csv
 | OSM extraction pipeline | Implemented |
 | DEM enrichment | Implemented |
 | Schema validator | Implemented |
-| Photo-to-record pipeline | Implemented, 10 tests passing |
+| Photo-to-record pipeline | Implemented, 15 tests passing |
+| OSM cross-matching | Implemented |
 | Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs sampled |
 | Laboratory analysis | Samples submitted, results pending |

@@ -26,7 +26,9 @@ unstable slope, or an argument with a landowner.
 
 Record in this order, before touching the water:
 
-1. **Time** — ISO 8601 with the `+06:00` offset.
+1. **Time** — ISO 8601 with the `+05:00` offset. Almaty has been UTC+5
+   since March 2024; an offset of +06:00 in a record predating that change is
+   correct, and in a record after it is a mistake.
 2. **GPS coordinates** — taken at the outlet, with the device given at least 60
    seconds to settle. Record the device's reported accuracy. If accuracy is worse
    than 15 m, note it; the point stays `reported`, not `verified`.

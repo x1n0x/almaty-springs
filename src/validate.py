@@ -111,7 +111,7 @@ def check_row(report: Report, line: int, row: dict, strict: bool) -> None:
             report.error(line, f"measured_at: {measured_at!r} is not ISO 8601")
         else:
             if parsed.tzinfo is None:
-                report.warn(line, "measured_at has no UTC offset; assume +06:00?")
+                report.warn(line, "measured_at has no UTC offset; assume +05:00?")
 
     confidence = (row.get("confidence") or "").strip()
     has_chemistry = any(

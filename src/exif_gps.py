@@ -70,12 +70,64 @@ class PhotoLocation:
         return self.lat is not None and self.lon is not None
 
 
+TIFF_HEADERS = (b"II*\x00", b"MM\x00*")
+
+
+def _find_heif_exif(data: bytes) -> int:
+    """Offset of the TIFF header inside a HEIC/HEIF file.
+
+    Properly, the Exif item is located through the meta/iinf/iloc boxes. In
+    practice the payload is always preceded by the literal "Exif\\0\\0", so
+    this scans for that marker and keeps the first hit followed by a valid
+    TIFF header.
+
+    The validation is not optional: the string also appears earlier in the
+    file as an item type inside the metadata boxes, and on a real iPhone
+    photograph that decoy comes first. Taking the first match without checking
+    yields garbage coordinates.
+    """
+    pos = 0
+    while True:
+        index = data.find(b"Exif\x00\x00", pos)
+        if index < 0:
+            raise ExifError("no EXIF block found in HEIF container")
+        tiff = index + 6
+        if data[tiff : tiff + 4] in TIFF_HEADERS:
+            return tiff
+        pos = index + 1
+
+
+def _find_png_exif(data: bytes) -> int:
+    """Offset of the TIFF header inside a PNG `eXIf` chunk."""
+    offset = 8  # past the PNG signature
+    while offset + 8 <= len(data):
+        (length,) = struct.unpack_from(">I", data, offset)
+        chunk = data[offset + 4 : offset + 8]
+        if chunk == b"eXIf":
+            start = offset + 8
+            if data[start : start + 4] not in TIFF_HEADERS:
+                raise ExifError("PNG eXIf chunk does not start with a TIFF header")
+            return start
+        if chunk == b"IEND":
+            break
+        offset += 12 + length  # length + type + data + CRC
+    raise ExifError("no eXIf chunk in PNG")
+
+
 def _find_exif_block(data: bytes) -> tuple[bytes, int]:
     """Return (buffer, offset of the TIFF header within it).
 
-    Handles JPEG (APP1 segment) and bare TIFF. Returns the whole buffer so
-    that internal offsets, which are relative to the TIFF header, stay valid.
+    Handles JPEG (APP1 segment), HEIC/HEIF, PNG (eXIf chunk) and bare TIFF.
+    Returns the whole buffer so that internal offsets, which are relative to
+    the TIFF header, stay valid.
     """
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return data, _find_png_exif(data)
+
+    # ISO base media file format: HEIC, HEIF, AVIF. Size (4 bytes) then 'ftyp'.
+    if len(data) > 12 and data[4:8] == b"ftyp":
+        return data, _find_heif_exif(data)
+
     if data[:2] == b"\xff\xd8":  # JPEG SOI
         pos = 2
         while pos + 4 <= len(data):
