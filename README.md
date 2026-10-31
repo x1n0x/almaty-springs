@@ -128,9 +128,14 @@ data/
   README.md             Data dictionary and collection protocol
 
 src/
+  photos_to_springs.py  Turn geotagged field photos into spring records
+  exif_gps.py           Minimal EXIF reader (standard library only)
   fetch_osm_springs.py  Pull spring features from the Overpass API
   enrich_elevation.py   Attach DEM elevation to spring coordinates
   validate.py           Schema and range checks on the spring table
+
+tests/
+  test_exif_gps.py      EXIF parsing, both byte orders, missing-GPS cases
 
 notebooks/
   01_osm_inventory.ipynb        Extract, deduplicate, map the OSM seed layer
@@ -175,6 +180,26 @@ pip install -r requirements.txt
 
 On Windows, activate with `.venv\Scripts\activate` instead.
 
+Turn a folder of field photographs into spring records:
+
+```bash
+python src/photos_to_springs.py "path/to/photos" --out data/raw/from_photos.csv
+python src/enrich_elevation.py data/raw/from_photos.csv --backend api
+python src/validate.py data/raw/from_photos.csv
+```
+
+Photographs within 50 m of each other are grouped into one spring and given the
+group's median position. GPS altitude from a phone is kept only as a note: it
+is routinely tens of metres out, so `elevation_m` is filled from the DEM
+instead. Every row lands as `candidate` — a photograph proves someone stood
+somewhere, not that what they photographed is a spring.
+
+Run the tests:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 Build the raw OpenStreetMap layer:
 
 ```bash
@@ -197,6 +222,7 @@ python src/validate.py data/raw/osm_springs.csv
 | OSM extraction pipeline | Implemented |
 | DEM enrichment | Implemented |
 | Schema validator | Implemented |
+| Photo-to-record pipeline | Implemented, 10 tests passing |
 | Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs sampled |
 | Laboratory analysis | Samples submitted, results pending |
