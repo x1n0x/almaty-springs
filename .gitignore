@@ -1,0 +1,49 @@
+# Data layers are reproducible from src/ and are not tracked.
+data/raw/*
+data/interim/*
+data/processed/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Generated figures
+reports/figures/*
+!reports/figures/.gitkeep
+
+# Large geospatial inputs
+*.tif
+*.tiff
+*.geotiff
+*.gpkg
+*.shp
+*.shx
+*.dbf
+*.prj
+*.zarr/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.python-version
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
