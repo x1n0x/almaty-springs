@@ -135,12 +135,38 @@ of the README.
 
 ---
 
-## 7. Attribution block for publications
+## 7. Laboratory analysis
+
+**What it provides.** Water chemistry of samples collected in the field: the
+measurements that field instruments cannot deliver, and the only ones with
+analytical accuracy worth reporting.
+
+**Where.** Kazakh-German University (DKU), Almaty.
+
+**By whom.** Elizaveta Katkova. See the credits section of the README; this is
+authorship, not a data source being consumed, and it is recorded in
+`CITATION.cff` alongside the repository's other author.
+
+**How it is recorded.** Laboratory values are stored in their own columns,
+never merged with the indicative field-instrument readings described in
+section 6. Each laboratory result carries the facility and the method used, so
+that a value can be traced to how it was produced. Where a parameter is
+measured both on site and in the laboratory, both values are kept: the
+difference between them is information about the field instrument, not noise
+to be averaged away.
+
+**Licence.** Original to this project, released under CC BY 4.0 with
+attribution to both authors and to DKU as the analysing facility.
+
+---
+
+## 8. Attribution block for publications
 
 Any figure, notebook, or report published from this project carries:
 
 ```
 Spring locations © OpenStreetMap contributors, ODbL 1.0.
+Laboratory analysis by Elizaveta Katkova, Kazakh-German University (DKU), Almaty.
 Elevation from Copernicus DEM GLO-30, © DLR/Airbus, provided under COPERNICUS by
 the European Union and ESA.
 Population from WorldPop, CC BY 4.0.
@@ -151,7 +177,7 @@ Sources not used in a given figure are omitted from its block.
 
 ---
 
-## 8. Extract provenance
+## 9. Extract provenance
 
 Every run of `fetch_osm_springs.py` writes a sidecar `.meta.json` next to its
 output recording the Overpass query text, the bounding box, the endpoint, the UTC

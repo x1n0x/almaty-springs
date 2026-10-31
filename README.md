@@ -75,7 +75,8 @@ spring, and how is that share distributed across districts?
 |---|---|---|---|
 | OpenStreetMap (Overpass API) | Point/polygon features tagged `natural=spring`, `drinking_water` | Open, ODbL | Primary location seed |
 | Copernicus DEM / SRTM | Raster elevation | Open | Elevation, slope, distance to mountain front |
-| Field measurements | Discharge, temperature, pH, TDS, nitrate | Collected for this project | Hydrochemistry, seasonality |
+| Field measurements | Discharge, temperature, pH, TDS, nitrate | Collected for this project | Indicative on-site readings |
+| Laboratory analysis (DKU) | Water chemistry of collected samples | Kazakh-German University, Almaty | Hydrochemical results |
 | Kazhydromet | Meteorological observations (Almaty stations) | Public reports | Melt-season context, air temperature baseline |
 | Bureau of National Statistics RK | Population by district | Open | Accessibility analysis |
 | 2GIS, local hiking resources | Informal spring locations | Reference only | Cross-check and candidate discovery |
@@ -358,7 +359,30 @@ as a recommendation to drink from any spring.
 
 ---
 
-## 11. Contributing
+## 11. Credits
+
+This project is the work of more than one person, and the laboratory half of it
+does not appear in the commit history. It is recorded here instead.
+
+**Vladislav** ([@x1n0x](https://github.com/x1n0x)) — project design, field
+survey, data engineering, analysis, repository.
+
+**Elizaveta Katkova** — Kazakh-German University (DKU), Almaty. Laboratory
+analysis, sample preparation and handling, hydrochemical interpretation. Every
+water-chemistry value published in this repository comes from this work.
+
+Laboratory analysis is carried out at the Kazakh-German University (DKU) in
+Almaty, which provides the facilities and instrumentation the project's
+hydrochemistry depends on.
+
+Machine-readable authorship is in [`CITATION.cff`](CITATION.cff); GitHub reads
+it for the "Cite this repository" panel. Both authors are listed there, and the
+citation metadata is the canonical record — not the commit log, which only
+reflects who typed.
+
+---
+
+## 12. Contributing
 
 Spring locations, corrections, and measurements are welcome. Open an issue with
 coordinates and, if possible, a photograph of the outlet. Please do not submit
@@ -366,7 +390,7 @@ locations on private land without the owner's permission.
 
 ---
 
-## 12. Licence
+## 13. Licence
 
 Code is released under the MIT Licence — see [`LICENSE`](LICENSE).
 

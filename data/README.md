@@ -93,7 +93,63 @@ information and silently dropping it biases coverage estimates.
 
 ---
 
-## 3. Provenance and licences
+## 3. Laboratory results
+
+Laboratory values live in their own table, `data/field/lab_results_*.csv`, not
+in extra columns on the spring record. Two reasons:
+
+- The list of analytes is not known in advance and grows between campaigns. A
+  wide table would need a schema change for every new parameter; a long one
+  does not.
+- A laboratory value carries metadata a field reading does not — method,
+  detection limit, which laboratory, which analyst. Hanging those off every
+  analyte column in a wide table is unworkable.
+
+Template: `data/lab_results_template.csv`.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `spring_id` | string | yes | Links to the spring record, `ALA-####` |
+| `sample_id` | string | yes | Laboratory's own sample identifier |
+| `analyte` | string | yes | What was measured, e.g. `nitrate`, `hardness`, `E_coli` |
+| `value` | float | yes | Result, in `unit` |
+| `unit` | string | yes | e.g. `mg/L`, `CFU/100mL`, `uS/cm`, `pH` |
+| `below_lod` | bool | yes | `true` when the result is below the detection limit |
+| `lod` | float | no | Limit of detection, in `unit` |
+| `method` | string | no | Analytical method or standard |
+| `lab` | string | yes | Facility, e.g. `DKU` |
+| `analyst` | string | no | Who performed the analysis |
+| `sampled_at` | datetime | yes | When the sample was taken, ISO 8601 |
+| `analysed_at` | datetime | no | When it was analysed |
+| `notes` | string | no | Anything the fields above cannot hold |
+
+### Non-detects
+
+A result below the detection limit is recorded with `below_lod=true`, `value`
+set to the detection limit, and `lod` filled. It is **not** recorded as zero
+and **not** left blank. Both of those destroy information: zero asserts absence
+that was never demonstrated, and blank is indistinguishable from "not
+measured". Any analysis of these columns must branch on `below_lod` rather
+than treat `value` as a plain number.
+
+### Relationship to field readings
+
+Where a parameter is measured both on site and in the laboratory — pH and
+nitrate, typically — both are kept. The field value stays in the spring record,
+the laboratory value stays here. They are not reconciled into one number: the
+gap between them measures the field instrument, and averaging them would
+discard exactly the comparison that makes the field readings interpretable.
+
+### Credit
+
+Laboratory analysis is carried out at the Kazakh-German University (DKU) in
+Almaty by Elizaveta Katkova, who is an author of this project. See the credits
+section of the README and `CITATION.cff`. Any publication using these values
+carries that attribution.
+
+---
+
+## 4. Provenance and licences
 
 `raw/osm_springs.csv` is derived from OpenStreetMap and is therefore subject to
 the Open Database Licence. Any published derivative must carry the ODbL
@@ -107,7 +163,7 @@ tables are affected.
 
 ---
 
-## 4. Reproducing the data layer
+## 5. Reproducing the data layer
 
 ```bash
 python src/fetch_osm_springs.py --out data/raw/osm_springs.csv

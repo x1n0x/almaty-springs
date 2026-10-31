@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+title: >-
+  Almaty Springs: A Geospatial and Hydrochemical Study of Natural Springs
+  in the Almaty Region
+message: >-
+  If you use this dataset, its code, or the laboratory results derived from it,
+  please cite the project and credit all authors listed below.
+type: dataset
+
+# Contributions are described in README.md, section 11. CFF 1.2.0 has no field
+# for author roles, so they are not duplicated here.
+authors:
+  - given-names: Vladislav
+    alias: x1n0x
+    city: Almaty
+    country: KZ
+  - family-names: Katkova
+    given-names: Elizaveta
+    affiliation: Kazakh-German University (DKU), Almaty
+    city: Almaty
+    country: KZ
+
+abstract: >-
+  An open inventory and hydrochemical study of natural springs on the northern
+  slope of the Ile-Alatau range and within the Almaty urban area. The project
+  combines OpenStreetMap-derived locations, DEM elevation, geotagged field
+  photographs, and laboratory water analysis to describe where springs occur
+  and how their water chemistry varies. Laboratory work is carried out at the
+  Kazakh-German University (DKU) in Almaty.
+
+keywords:
+  - hydrology
+  - springs
+  - water quality
+  - hydrochemistry
+  - geospatial
+  - OpenStreetMap
+  - Almaty
+  - Kazakhstan
+  - open data
+
+repository-code: https://github.com/x1n0x/almaty-springs
+url: https://x1n0x.github.io/almaty-springs/
+license: MIT
