@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Vladislav (x1n0x)
+Copyright (c) 2026 Vladislav Karelin (x1n0x)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,9 @@ Data in this repository and its derivatives are licensed separately:
 
 - Spring locations derived from OpenStreetMap remain subject to the Open
   Database Licence (ODbL) 1.0. (c) OpenStreetMap contributors.
-- Original field measurements collected by this project are released under
-  Creative Commons Attribution 4.0 International (CC BY 4.0).
+- Original field measurements and laboratory results produced by this project
+  are released under Creative Commons Attribution 4.0 International
+  (CC BY 4.0). Attribution is to both authors: Vladislav Karelin and Elizaveta
+  Katkova (Kazakh-German University, Almaty). See CITATION.cff.
 
 See docs/sources.md for full attribution requirements.

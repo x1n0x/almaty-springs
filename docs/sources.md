@@ -127,7 +127,8 @@ project data. No 2GIS content is redistributed.
 
 **Collected by.** This project, following `docs/field_protocol.md`.
 
-**Licence.** CC BY 4.0. Attribution: "Almaty Springs project (github.com/x1n0x/almaty-springs)".
+**Licence.** CC BY 4.0. Attribution: "Karelin, V., & Katkova, E. — Almaty Springs project
+(github.com/x1n0x/almaty-springs)".
 
 **Caveat published alongside.** Field-instrument readings, indicative accuracy,
 no microbiological testing. Not a safety assessment. See the limitations section
@@ -170,7 +171,8 @@ Laboratory analysis by Elizaveta Katkova, Kazakh-German University (DKU), Almaty
 Elevation from Copernicus DEM GLO-30, © DLR/Airbus, provided under COPERNICUS by
 the European Union and ESA.
 Population from WorldPop, CC BY 4.0.
-Field measurements: Almaty Springs project, CC BY 4.0.
+Field and laboratory measurements: Karelin & Katkova, Almaty Springs
+project, CC BY 4.0.
 ```
 
 Sources not used in a given figure are omitted from its block.

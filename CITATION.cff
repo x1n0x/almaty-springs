@@ -10,7 +10,8 @@ type: dataset
 # Contributions are described in README.md, section 11. CFF 1.2.0 has no field
 # for author roles, so they are not duplicated here.
 authors:
-  - given-names: Vladislav
+  - family-names: Karelin
+    given-names: Vladislav
     alias: x1n0x
     city: Almaty
     country: KZ
