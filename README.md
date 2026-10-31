@@ -232,7 +232,7 @@ python src/validate.py data/raw/osm_springs.csv
 | Photo-to-record pipeline | Implemented, 15 tests passing |
 | OSM cross-matching | Implemented |
 | Deduplication and identifier assignment | Not started |
-| Field measurement campaign | 6 springs sampled |
+| Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
 | Laboratory analysis | Samples submitted, results pending |
 | RQ1 spatial analysis | Not started |
 | RQ2-RQ4 hydrochemistry | Awaiting laboratory results |
@@ -261,6 +261,42 @@ inventory. Some are genuine captured springs; others are taps on the municipal
 supply, which are not springs at all. Separating them requires site visits, and
 the share that turns out to be misclassified will be reported — it is the first
 limitation listed in `docs/methodology.md` section 8.
+
+
+### First field campaign, 25 October 2026
+
+Six springs on the northern slope of the Ile-Alatau were visited in one
+afternoon and sampled for laboratory analysis. Positions come from 34
+geotagged photographs, grouped by site and reduced to a median coordinate;
+elevations are from the DEM.
+
+| ID | Latitude | Longitude | Elevation | Photos | In OSM |
+|---|---|---|---|---|---|
+| ALA-0001 | 43.18696 | 77.00465 | 1237 m | 4 | not mapped |
+| ALA-0002 | 43.16193 | 77.04089 | 1550 m | 6 | `node/12196396465`, 25 m |
+| ALA-0003 | 43.15953 | 77.03564 | 1622 m | 7 | `node/9924581790`, 8 m |
+| ALA-0004 | 43.12511 | 76.92535 | 1436 m | 5 | not mapped |
+| ALA-0005 | 43.10185 | 76.94049 | 1632 m | 6 | `node/4822409372`, 31 m |
+| ALA-0006 | 43.09582 | 76.95166 | 1731 m | 6 | `node/12802758118`, 20 m |
+
+Data: [`data/field/springs_2026-10-25.csv`](data/field/springs_2026-10-25.csv).
+
+**Four of the six are already in OpenStreetMap.** ALA-0003 matches a named node
+(Күміс Тау) to within 8 m, which is an independent check on the photo-derived
+coordinates: two unrelated methods agreeing to within GPS error.
+
+**Two are absent from OSM** — the nearest mapped feature is 1.4 km and 2.9 km
+away respectively. Both are candidates to contribute back once their outlets
+have been confirmed on a second visit.
+
+Phone GPS altitude agreed with the DEM to within 2-13 m across all six sites.
+That is better than typical for a handset, but `elevation_m` still comes from
+the DEM: the agreement was measured here, not guaranteed elsewhere.
+
+**Not yet recorded for these sites.** `flow_state` is empty: discharge was not
+measured and the outlets' flow was not characterised at the time of sampling.
+Five of the six have no local name. Both are gaps to close on the next visit,
+not values to infer afterwards from memory.
 
 ---
 
