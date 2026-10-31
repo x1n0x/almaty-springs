@@ -198,9 +198,10 @@ python src/validate.py data/raw/osm_springs.csv
 | DEM enrichment | Implemented |
 | Schema validator | Implemented |
 | Deduplication and identifier assignment | Not started |
-| Field measurement campaign | Not started |
+| Field measurement campaign | 6 springs sampled |
+| Laboratory analysis | Samples submitted, results pending |
 | RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | Blocked on field data |
+| RQ2-RQ4 hydrochemistry | Awaiting laboratory results |
 | RQ5 accessibility | Not started |
 
 ### First extract
@@ -236,10 +237,18 @@ over-represented in every available source. Remote springs are systematically
 missing, and no amount of cleaning fixes that. Spatial results are therefore
 statements about *documented* springs, not about all springs.
 
-**Field chemistry is limited to field instruments.** Portable pH, TDS, and
-nitrate measurements are indicative, not laboratory-grade. Microbiological
-contamination — the risk that actually matters for drinking water — cannot be
-assessed with this equipment at all.
+**Sample size.** Six springs have been sampled so far. That is enough for a
+careful description of each one and for comparison against drinking-water
+norms, and it is not enough for the clustering and distribution tests described
+in `docs/methodology.md`. Those sections are written for a larger inventory and
+stay unanswered until it exists; nothing in this repository will report a
+statistical result computed on six points.
+
+**Two tiers of measurement.** Where samples go to a laboratory, results are
+laboratory-grade and are labelled with the facility and method. Where only
+portable pH, TDS and nitrate instruments were used, readings are indicative and
+labelled as such. The two are never pooled into one column, because an
+indicative strip reading and a certified assay are not the same measurement.
 
 **Seasonality requires time.** RQ3 needs at least one full melt cycle of repeat
 visits. Until then, no seasonal claim will be made.
