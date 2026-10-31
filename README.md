@@ -132,6 +132,7 @@ src/
   photos_to_springs.py  Turn geotagged field photos into spring records
   exif_gps.py           EXIF reader for JPEG/HEIC/PNG (standard library only)
   match_osm.py          Match visited springs against the OSM extract
+  make_map.py           Render the inventory as a standalone HTML map
   fetch_osm_springs.py  Pull spring features from the Overpass API
   enrich_elevation.py   Attach DEM elevation to spring coordinates
   validate.py           Schema and range checks on the spring table
@@ -151,6 +152,7 @@ docs/
   sources.md            Every data source, its licence, and attribution
 
 reports/
+  map.html              Interactive map of the inventory
   figures/              Generated figures
 ```
 
@@ -231,6 +233,7 @@ python src/validate.py data/raw/osm_springs.csv
 | Schema validator | Implemented |
 | Photo-to-record pipeline | Implemented, 15 tests passing |
 | OSM cross-matching | Implemented |
+| Interactive map | Implemented |
 | Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
 | Laboratory analysis | Samples submitted, results pending |
@@ -280,6 +283,8 @@ elevations are from the DEM.
 | ALA-0006 | 43.09582 | 76.95166 | 1731 m | 6 | `node/12802758118`, 20 m |
 
 Data: [`data/field/springs_2026-10-25.csv`](data/field/springs_2026-10-25.csv).
+Map: [`reports/map.html`](reports/map.html) — build it with
+`python src/make_map.py`, then open the file in a browser.
 
 **Four of the six are already in OpenStreetMap.** ALA-0003 matches a named node
 (Күміс Тау) to within 8 m, which is an independent check on the photo-derived
@@ -288,6 +293,13 @@ coordinates: two unrelated methods agreeing to within GPS error.
 **Two are absent from OSM** — the nearest mapped feature is 1.4 km and 2.9 km
 away respectively. Both are candidates to contribute back once their outlets
 have been confirmed on a second visit.
+
+**Where the six sit in the region.** They span 1237-1731 m, with a median of
+1586 m. The 262 mapped features span 569-4177 m with a median of 1612 m: 115
+lie below the visited band and 128 above it. The medians nearly coincide, but
+the visited range is narrow — this is a sample from the region's middle
+elevations, not a cross-section of it. Any later comparison between these
+springs and the regional picture has to carry that caveat.
 
 Phone GPS altitude agreed with the DEM to within 2-13 m across all six sites.
 That is better than typical for a handset, but `elevation_m` still comes from
