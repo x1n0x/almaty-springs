@@ -6,6 +6,9 @@ field measurements, and statistical analysis to describe where springs occur, ho
 their discharge and water quality vary through the year, and how accessible they
 are to residents.
 
+**[Interactive map of the inventory](https://x1n0x.github.io/almaty-springs/reports/map.html)**
+— six visited springs against 262 features from OpenStreetMap.
+
 This repository is a research project in progress. Its structure, data contracts,
 and methodology are defined first; results are added as data is collected.
 
@@ -283,8 +286,9 @@ elevations are from the DEM.
 | ALA-0006 | 43.09582 | 76.95166 | 1731 m | 6 | `node/12802758118`, 20 m |
 
 Data: [`data/field/springs_2026-10-25.csv`](data/field/springs_2026-10-25.csv).
-Map: [`reports/map.html`](reports/map.html) — build it with
-`python src/make_map.py`, then open the file in a browser.
+Map: **[open the interactive map](https://x1n0x.github.io/almaty-springs/reports/map.html)**
+(source: [`reports/map.html`](reports/map.html), rebuild with
+`python src/make_map.py`).
 
 **Four of the six are already in OpenStreetMap.** ALA-0003 matches a named node
 (Күміс Тау) to within 8 m, which is an independent check on the photo-derived
