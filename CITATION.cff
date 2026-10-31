@@ -12,6 +12,7 @@ type: dataset
 authors:
   - family-names: Karelin
     given-names: Vladislav
+    orcid: https://orcid.org/0009-0003-2612-7843
     alias: x1n0x
     city: Almaty
     country: KZ
@@ -20,6 +21,9 @@ authors:
     affiliation: Kazakh-German University (DKU), Almaty
     city: Almaty
     country: KZ
+    # ORCID pending. Transliteration of Cyrillic surnames varies between
+    # databases, so an identifier matters more here than for a Latin-script
+    # name -- add it as soon as there is one.
 
 abstract: >-
   An open inventory and hydrochemical study of natural springs on the northern

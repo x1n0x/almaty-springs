@@ -364,7 +364,7 @@ as a recommendation to drink from any spring.
 This project is the work of more than one person, and the laboratory half of it
 does not appear in the commit history. It is recorded here instead.
 
-**Vladislav Karelin** ([@x1n0x](https://github.com/x1n0x)) — project design, field
+**Vladislav Karelin** ([@x1n0x](https://github.com/x1n0x), [ORCID 0009-0003-2612-7843](https://orcid.org/0009-0003-2612-7843)) — project design, field
 survey, data engineering, analysis, repository.
 
 **Elizaveta Katkova** — Kazakh-German University (DKU), Almaty. Laboratory
