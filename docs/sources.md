@@ -144,7 +144,13 @@ analytical accuracy worth reporting.
 
 **Where.** Kazakh-German University (DKU), Almaty.
 
-**By whom.** Elizaveta Katkova. See the credits section of the README; this is
+**By whom.** Elizaveta Katkova, Energy and Environmental Engineering, DKU.
+
+**Methods.** Sulfate: barium-chloride turbidimetry, delivered both as a powder
+reagent in a square cuvette (working range about 2-70 mg/L) and as a barcoded
+cuvette test (about 40-150 mg/L). The instrument has not been identified, so
+the method designations recorded are provisional. Methods for the remaining
+analytes have not been supplied and the `method` column is empty for them. See the credits section of the README; this is
 authorship, not a data source being consumed, and it is recorded in
 `CITATION.cff` alongside the repository's other author.
 

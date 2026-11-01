@@ -148,7 +148,38 @@ ANSWERS, 2026-11-01
    true zeros, and are now stored with below_lod=true. The numeric detection
    limit itself was not supplied, so `lod` stays empty.
 
-5. Sulfate, sample 4 - which method gave 54 and which gave 65.7, and whether
-   the same bias applies to the other five samples: STILL OPEN.
+5. Sulfate methods: ANSWERED, with a caveat about the identification.
 
-6. Analyst name and analysis date: STILL OPEN.
+   Both figures come from the same chemistry: sulfate is precipitated with
+   barium chloride as barium sulfate, and the instrument derives the
+   concentration from the resulting turbidity. The two differ in how the
+   reagent is delivered.
+
+     - Square cuvettes with a powder reagent. If the instrument is a Hach,
+       this is Method 8051 with SulfaVer 4, based on USEPA 375.4. Working
+       range about 2-70 mg/L SO4. The blank is zeroed first, the reagent
+       added, then about five minutes' development.
+     - Barcoded tubes, i.e. cuvette tests, with the reagent pre-filled and
+       the barcode selecting the calibration. For Hach these are LCK 153
+       (40-150 mg/L) or LCK 353 (150-900 mg/L).
+
+   CAVEAT: the instrument itself was not identified. If it was a Merck
+   Spectroquant rather than a Hach, the equivalents are the Spectroquant
+   Sulfate Test and the Spectroquant Sulfate Cell Test. The chemistry and
+   the argument below are the same either way, but the exact method
+   designations are provisional until the instrument is confirmed.
+
+   CONSEQUENCE: of the six samples, only sample 4 (54 mg/L by the powder
+   method) falls inside the cuvette test's 40-150 mg/L window. The other
+   five, at 2-9 mg/L, are below its lower limit and cannot be measured by
+   it at all. That is why exactly one sample was re-measured -- and it means
+   the 17.8% gap observed at sample 4 cannot be transferred to the others as
+   a correction. Checking them would need a different reference method, not
+   this one.
+
+6. Analyst and analysis date: ANSWERED.
+
+   Analyst: Katkova Elizaveta Igorevna (Каткова Елизавета Игоревна),
+   third-year student, Energy and Environmental Engineering,
+   Kazakh-German University (DKU), Almaty.
+   Analysis date: 26 October 2026, the day after sampling.

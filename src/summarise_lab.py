@@ -49,10 +49,17 @@ def binomial_tail(k: int, n: int, p: float) -> float:
     return sum(comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(k, n + 1))
 
 
-def grouped(rows: list[dict], method: str = "lab_routine") -> dict:
+# Measurements made by a second method on a single sample are held out of the
+# per-sample statistics: one reading from a different method is not a replicate
+# and would distort both the mean and the spread. Check 3 compares them
+# separately, which is the only place the comparison is meaningful.
+SECONDARY_METHODS = {"turbidimetric_BaCl2_cuvette"}
+
+
+def grouped(rows: list[dict], exclude: set[str] = SECONDARY_METHODS) -> dict:
     out: dict[tuple[str, str], list[tuple[int, float]]] = defaultdict(list)
     for row in rows:
-        if row.get("method") != method:
+        if row.get("method") in exclude:
             continue
         try:
             value = float(row["value"])
@@ -173,17 +180,24 @@ def check_method_disagreement(rows: list[dict]) -> None:
         for method, values in sorted(methods.items()):
             means[method] = statistics.mean(values)
             print(f"     {method:16} {means[method]:.2f}  (n={len(values)})")
-        routine = means.get("lab_routine")
-        reference = means.get("lab_reference")
+        routine = means.get("turbidimetric_BaCl2_powder")
+        reference = means.get("turbidimetric_BaCl2_cuvette")
         if routine and reference:
             diff = reference - routine
             print(f"     difference: {diff:+.2f} ({diff / reference * 100:+.1f}% "
-                  "of the reference value)")
-            print("\n     The routine method reads low here. Only this one sample")
-            print("     was measured both ways, so the size of the bias elsewhere")
-            print("     is unknown -- it cannot be assumed to be the same, and it")
-            print("     cannot be assumed to be zero. Every other routine sulfate")
-            print("     figure in this batch inherits that uncertainty.")
+                  "of the cuvette value)")
+            print("\n     The powder method reads low here. The two share their")
+            print("     chemistry -- barium chloride, turbidity -- and differ in")
+            print("     reagent delivery and calibration range.")
+            print()
+            print("     The gap cannot be carried across to the other samples.")
+            print("     The cuvette test works from about 40 mg/L upward, and the")
+            print("     other five sit at 2-9 mg/L, below its range: they could")
+            print("     not have been measured by it, which is why only this one")
+            print("     was re-run. Correcting them by -17.8% would be applying a")
+            print("     bias measured at the top of the powder method's range to")
+            print("     readings near its bottom. Checking them needs a different")
+            print("     reference method, not this one.")
     if not found:
         print("  No analyte was measured by more than one method.")
 

@@ -54,7 +54,7 @@ SECTIONS = [
     (r"Cl2", "free_chlorine", "mg/L", "unit confirmed by the lab"),
     (r"на\s+pH", "ph", "pH", ""),
     (r"NO2", "nitrite", "mg/L", "confirmed by the lab as NO2- (the ion), not NO2-N"),
-    (r"SO4\s*\(2-\)", "sulfate", "mg/L", ""),
+    (r"SO4\s*\(2-\)", "sulfate", "mg/L", ""),  # method set below
     (r"Fe", "iron", "mg/L", ""),
     # The report spells it "жестокость"; the intended word is "жёсткость".
     (r"жест[оё]к", "hardness", "mg/L CaCO3", ""),
@@ -72,6 +72,16 @@ HARDNESS_GPG_TO_PPM = {0: 0, 1.5: 25, 3: 50, 7: 120, 15: 250, 25: 425}
 HARDNESS_TOP_OF_SCALE = 25  # gpg; readings here are right-censored
 
 LAB = "DKU"
+ANALYST = "Elizaveta Katkova"
+ANALYSED_AT = "2026-10-26"
+
+# Sulfate was measured by two deliveries of the same barium-chloride
+# turbidimetric chemistry. The designations are provisional: the instrument
+# was not identified, so these are the Hach names and the Merck Spectroquant
+# equivalents would differ. The working ranges, not the brand, are what the
+# analysis relies on.
+SULFATE_POWDER = "turbidimetric_BaCl2_powder"      # approx. 2-70 mg/L
+SULFATE_CUVETTE = "turbidimetric_BaCl2_cuvette"    # approx. 40-150 mg/L
 
 
 def parse_number(token: str) -> float:
@@ -140,6 +150,8 @@ def rows_for(
                     "unit": unit,
                     "below_lod": below_lod,
                     "method": method,
+                    "analyst": ANALYST,
+                    "analysed_at": ANALYSED_AT,
                     "lab": LAB,
                     "sampled_at": SAMPLED_AT[sample],
                     "notes": row_note,
@@ -169,7 +181,8 @@ def main() -> int:
             raise SystemExit(
                 f"{analyte}: expected samples 1-6, parsed {sorted(block)}"
             )
-        rows += rows_for(analyte, unit, note, block, method="lab_routine")
+        method = SULFATE_POWDER if analyte == "sulfate" else ""
+        rows += rows_for(analyte, unit, note, block, method=method)
 
     # Sample 4 was re-measured for sulfate by a second method the lab calls a
     # "точная проба". Kept as its own row rather than replacing the routine
@@ -183,7 +196,9 @@ def main() -> int:
             "analyte": "sulfate",
             "value": "65.7",
             "unit": "mg/L",
-            "method": "lab_reference",
+            "method": SULFATE_CUVETTE,
+            "analyst": ANALYST,
+            "analysed_at": ANALYSED_AT,
             "lab": LAB,
             "sampled_at": SAMPLED_AT[4],
             "notes": 'reported by the lab as "точная проба" (reference measurement)',

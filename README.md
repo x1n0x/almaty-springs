@@ -386,12 +386,25 @@ step. Until it is traced, triplicate means are biased upward.
 
 **Sulfate repeats are identical in all six samples, and that is not precision.**
 A readout returning the same number three times is quantised. The one sample
-measured twice proves the point: ALA-0004 gave 54 mg/L by the routine method
-and 65.7 mg/L by the laboratory's reference method, a difference of 17.8%. A
-standard deviation of zero alongside a 17.8% method bias is exactly the trap
-that reporting replicate spread as uncertainty would set. The other five
-sulfate figures were measured only by the routine method and inherit an
-unquantified bias of unknown size.
+measured twice proves the point: ALA-0004 gave 54 mg/L by the powder method
+and 65.7 mg/L by the cuvette test, a difference of 17.8%. A standard deviation
+of zero alongside a 17.8% method bias is exactly the trap that reporting
+replicate spread as uncertainty would set.
+
+Both sulfate methods are the same chemistry — barium chloride precipitates
+barium sulfate and the instrument reads the turbidity — delivered two ways: a
+powder reagent in a square cuvette, and a barcoded cuvette test with the
+reagent pre-filled and the calibration selected by the barcode. The instrument
+itself was not identified, so the exact method designations stay provisional.
+
+**Why only one sample was re-measured, and why its correction cannot travel.**
+The cuvette test works from roughly 40 mg/L upward. ALA-0004 at 54 mg/L is the
+only sample inside that window; the other five, at 2–9 mg/L, are below its
+lower limit and could not have been measured by it at all. So the 17.8% gap is
+not a correction factor waiting to be applied — it was measured at the top of
+the powder method's range, and the five readings that would need correcting
+sit near its bottom. Transferring it would be arithmetic dressed as
+calibration. Checking those five needs a different reference method.
 
 #### ALA-0004 is different from the other five
 
@@ -456,17 +469,23 @@ them.
 
 #### Open questions with the laboratory
 
-Four of the six questions put to the laboratory have been answered and are
-recorded with the answers at the end of
+All six questions put to the laboratory have been answered, and the answers
+are recorded beside the questions at the end of
 [`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt):
-hardness units, nitrite species, chlorine units, and the meaning of a reported
-zero.
+hardness units, nitrite species, chlorine units, the meaning of a reported
+zero, the two sulfate methods, and the analyst and analysis date.
 
-Two remain open. Which method produced 54 mg/L and which produced 65.7 mg/L
-for sulfate at ALA-0004, and whether the same bias applies to the five samples
-measured only one way. And the analyst name and analysis date for the record.
-Numeric detection limits were not supplied either, so non-detects carry the
-flag but no threshold.
+Three things are still missing, and each limits a specific claim rather than
+the batch as a whole:
+
+- **Numeric detection limits.** Non-detects carry the flag but no threshold,
+  so they can be counted but not bounded.
+- **The instrument make.** Hach and Merck Spectroquant have different method
+  designations for the same barium-chloride chemistry. The argument above
+  depends on the working ranges, not the brand, but the designations in the
+  record are provisional until this is confirmed.
+- **A reference method for low sulfate**, without which the five samples at
+  2–9 mg/L have no independent check.
 
 ---
 
@@ -520,9 +539,11 @@ does not appear in the commit history. It is recorded here instead.
 **Vladislav Karelin** ([@x1n0x](https://github.com/x1n0x), [ORCID 0009-0003-2612-7843](https://orcid.org/0009-0003-2612-7843)) — project design, field
 survey, data engineering, analysis, repository.
 
-**Elizaveta Katkova** — Kazakh-German University (DKU), Almaty. Laboratory
-analysis, sample preparation and handling, hydrochemical interpretation. Every
-water-chemistry value published in this repository comes from this work.
+**Elizaveta Katkova** (Каткова Елизавета Игоревна) — Energy and Environmental
+Engineering, Kazakh-German University (DKU), Almaty. Laboratory analysis,
+sample preparation and handling, hydrochemical interpretation. Every
+water-chemistry value published in this repository comes from this work; the
+first batch was analysed on 26 October 2026, the day after sampling.
 
 Laboratory analysis is carried out at the Kazakh-German University (DKU) in
 Almaty, which provides the facilities and instrumentation the project's
