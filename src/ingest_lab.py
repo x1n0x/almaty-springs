@@ -51,7 +51,10 @@ SAMPLED_AT = {
 # `unit` of "unknown" is deliberate and must not be guessed: see the open
 # questions at the end of the raw file.
 SECTIONS = [
-    (r"Cl2", "free_chlorine", "mg/L", "unit confirmed by the lab"),
+    # Hach program 88 covers free AND total chlorine; the report did not say
+    # which was measured, so the analyte is not narrowed to one of them.
+    (r"Cl2", "chlorine", "mg/L", "Hach program 88, free+total, 530 nm; "
+                                 "which of the two was measured is unrecorded"),
     (r"на\s+pH", "ph", "pH", ""),
     (r"NO2", "nitrite", "mg/L", "confirmed by the lab as NO2- (the ion), not NO2-N"),
     (r"SO4\s*\(2-\)", "sulfate", "mg/L", ""),  # method set below
@@ -72,14 +75,14 @@ HARDNESS_GPG_TO_PPM = {0: 0, 1.5: 25, 3: 50, 7: 120, 15: 250, 25: 425}
 HARDNESS_TOP_OF_SCALE = 25  # gpg; readings here are right-censored
 
 LAB = "DKU"
+INSTRUMENT = "Hach Lange DR 3900"
 ANALYST = "Elizaveta Katkova"
 ANALYSED_AT = "2026-10-26"
 
 # Sulfate was measured by two deliveries of the same barium-chloride
-# turbidimetric chemistry. The designations are provisional: the instrument
-# was not identified, so these are the Hach names and the Merck Spectroquant
-# equivalents would differ. The working ranges, not the brand, are what the
-# analysis relies on.
+# turbidimetric chemistry. The instrument is confirmed as a Hach Lange DR 3900
+# from a photograph, so the Hach designations apply. What the analysis relies
+# on is the working ranges, not the brand.
 SULFATE_POWDER = "turbidimetric_BaCl2_powder"      # approx. 2-70 mg/L
 SULFATE_CUVETTE = "turbidimetric_BaCl2_cuvette"    # approx. 40-150 mg/L
 
@@ -154,7 +157,9 @@ def rows_for(
                     "analysed_at": ANALYSED_AT,
                     "lab": LAB,
                     "sampled_at": SAMPLED_AT[sample],
-                    "notes": row_note,
+                    "notes": "; ".join(
+                        x for x in (f"instrument={INSTRUMENT}", row_note) if x
+                    ),
                 }
             )
             out.append(row)
@@ -201,7 +206,8 @@ def main() -> int:
             "analysed_at": ANALYSED_AT,
             "lab": LAB,
             "sampled_at": SAMPLED_AT[4],
-            "notes": 'reported by the lab as "точная проба" (reference measurement)',
+            "notes": f'instrument={INSTRUMENT}; reported by the lab as '
+                     f'"точная проба" (reference measurement)',
         }
     )
     rows.append(reference)

@@ -320,7 +320,9 @@ not values to infer afterwards from memory.
 
 ### First laboratory batch, received 1 November 2026
 
-Six samples, six analytes, most in triplicate: 97 measurements in
+Six samples, six analytes, most in triplicate, all measured on a **Hach Lange
+DR 3900** spectrophotometer on 26 October 2026, the day after sampling: 97
+measurements in
 [`data/field/lab_results_2026-10-25.csv`](data/field/lab_results_2026-10-25.csv),
 transcribed from the report preserved verbatim at
 [`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
@@ -342,9 +344,12 @@ Replicate means:
 | ALA-0005 | 7.85 | 4.33 | 4 | 250 | 0.007 | 1.5 | -3 |
 | ALA-0006 | 7.64 | 6.33 | 9 | >=425 | 0.010 | 5.0 | -3 |
 
-Free chlorine was below detection everywhere except a single 0.1 mg/L first
-reading at ALA-0006, which the replicate-order bias below makes hard to take at
-face value. Zeros throughout are non-detects, not measured zeros: the
+Chlorine was below detection everywhere except a single 0.1 mg/L first reading
+at ALA-0006, which the replicate-order bias below makes hard to take at face
+value. The instrument ran Hach program 88 at 530 nm, which covers free *and*
+total chlorine; the report did not say which was measured, so the column is
+recorded as `chlorine` rather than narrowed to one of them. Every result being
+a non-detect, nothing in the analysis turns on the distinction. Zeros throughout are non-detects, not measured zeros: the
 laboratory confirmed a reported 0 means the sample read the same as distilled
 water. They are stored with `below_lod=true` and no numeric limit, because the
 limit itself has not been supplied.
@@ -393,9 +398,8 @@ replicate spread as uncertainty would set.
 
 Both sulfate methods are the same chemistry — barium chloride precipitates
 barium sulfate and the instrument reads the turbidity — delivered two ways: a
-powder reagent in a square cuvette, and a barcoded cuvette test with the
-reagent pre-filled and the calibration selected by the barcode. The instrument
-itself was not identified, so the exact method designations stay provisional.
+PermaChem powder pillow in a square cuvette, and a barcoded cuvette test with
+the reagent pre-filled and the calibration selected by the barcode.
 
 **Why only one sample was re-measured, and why its correction cannot travel.**
 The cuvette test works from roughly 40 mg/L upward. ALA-0004 at 54 mg/L is the
@@ -475,17 +479,21 @@ are recorded beside the questions at the end of
 hardness units, nitrite species, chlorine units, the meaning of a reported
 zero, the two sulfate methods, and the analyst and analysis date.
 
+Photographs of the bench then confirmed the instrument as a Hach Lange DR 3900
+and showed the chlorine programme and the analysis timestamp on screen, which
+closed the question of method designations and corroborated the analysis date
+independently of the analyst's report.
+
 Three things are still missing, and each limits a specific claim rather than
 the batch as a whole:
 
 - **Numeric detection limits.** Non-detects carry the flag but no threshold,
   so they can be counted but not bounded.
-- **The instrument make.** Hach and Merck Spectroquant have different method
-  designations for the same barium-chloride chemistry. The argument above
-  depends on the working ranges, not the brand, but the designations in the
-  record are provisional until this is confirmed.
-- **A reference method for low sulfate**, without which the five samples at
-  2–9 mg/L have no independent check.
+- **A sulfate method reaching below about 40 mg/L**, without which the five
+  samples at 2–9 mg/L have no independent check.
+- **Reagent lot numbers and expiry dates** for the pillows actually used.
+  Nothing suggests a problem; it is simply part of a record that should be
+  able to explain itself later.
 
 ---
 

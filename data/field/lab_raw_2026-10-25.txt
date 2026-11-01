@@ -183,3 +183,44 @@ ANSWERS, 2026-11-01
    third-year student, Energy and Environmental Engineering,
    Kazakh-German University (DKU), Almaty.
    Analysis date: 26 October 2026, the day after sampling.
+
+
+---
+
+ANSWERS, second round, 2026-11-01 (from photographs of the instrument)
+
+7. Instrument: CONFIRMED. Hach Lange DR 3900 spectrophotometer.
+
+   This settles the Hach-versus-Merck question in answer 5. The method
+   designations recorded for sulfate are Hach ones and are no longer
+   provisional on the brand: barium-chloride turbidimetry with a PermaChem
+   powder pillow in a square cuvette, and a barcoded cuvette test. The
+   reagent photograph shows Hach PermaChem powder pillows on the bench,
+   consistent with the powder method.
+
+8. Chlorine method: PARTLY ANSWERED from the instrument display.
+
+   The screen reads "88 Хлор Св+Общ. ВК", 530 nm, result 0.0 mg/L Cl2, with
+   the display scaled to 10.0 mg/L. That is Hach program 88, chlorine free
+   and total, the standard DPD chemistry at 530 nm.
+
+   NEW AMBIGUITY: the program covers free AND total chlorine, and the report
+   did not say which was measured. The analyte is therefore recorded as
+   `chlorine` rather than `free_chlorine`. Every result was a non-detect, so
+   nothing in the analysis turns on it, but the column should not claim a
+   specificity the record does not have.
+
+9. Analysis timestamp: CONFIRMED INDEPENDENTLY. The instrument display reads
+   26-OCT-2026 08:06:29, matching the analyst's reported date and adding the
+   time of day.
+
+STILL MISSING after this round:
+
+  - Numeric detection limits for the analytes measured.
+  - A sulfate method with a working range below about 40 mg/L, for the five
+    samples at 2-9 mg/L.
+  - Reagent lot numbers and expiry dates for the pillows actually used. The
+    photograph shows a copper reagent bag carrying a handwritten note that
+    appears to end "декабря 2019"; copper is not one of this project's
+    analytes, so that particular bag is irrelevant here, but it is a reason
+    to ask what the lot and expiry were for the reagents that were used.

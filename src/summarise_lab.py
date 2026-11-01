@@ -32,7 +32,7 @@ from pathlib import Path
 # WHO Guidelines for Drinking-water Quality, 4th edition.
 GUIDELINES = {
     "nitrite": (3.0, "mg/L", "WHO provisional guideline, NO2- confirmed by the lab"),
-    "free_chlorine": (5.0, "mg/L", "WHO guideline value"),
+    "chlorine": (5.0, "mg/L", "WHO guideline value for free chlorine"),
     "iron": (0.3, "mg/L", "WHO: no health-based guideline; taste/staining threshold"),
     "sulfate": (250.0, "mg/L", "WHO: no health-based guideline; taste threshold"),
 }
