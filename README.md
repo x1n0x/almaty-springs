@@ -136,6 +136,8 @@ src/
   photos_to_springs.py  Turn geotagged field photos into spring records
   exif_gps.py           EXIF reader for JPEG/HEIC/PNG (standard library only)
   match_osm.py          Match visited springs against the OSM extract
+  ingest_lab.py         Parse a laboratory report into the results table
+  summarise_lab.py      Per-sample statistics and method-artefact checks
   make_map.py           Render the inventory as a standalone HTML map
   fetch_osm_springs.py  Pull spring features from the Overpass API
   enrich_elevation.py   Attach DEM elevation to spring coordinates
@@ -240,9 +242,9 @@ python src/validate.py data/raw/osm_springs.csv
 | Interactive map | Implemented |
 | Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
-| Laboratory analysis | Samples submitted, results pending |
+| Laboratory analysis | First batch received 2026-11-01, six analytes |
 | RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | Awaiting laboratory results |
+| RQ2-RQ4 hydrochemistry | Blocked on unit clarifications, see below |
 | RQ5 accessibility | Not started |
 
 ### First extract
@@ -314,6 +316,106 @@ the DEM: the agreement was measured here, not guaranteed elsewhere.
 measured and the outlets' flow was not characterised at the time of sampling.
 Five of the six have no local name. Both are gaps to close on the next visit,
 not values to infer afterwards from memory.
+
+
+### First laboratory batch, received 1 November 2026
+
+Six samples, six analytes, most in triplicate: 97 measurements in
+[`data/field/lab_results_2026-10-25.csv`](data/field/lab_results_2026-10-25.csv),
+transcribed from the report preserved verbatim at
+[`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
+Reproduce and check with:
+
+```bash
+python src/ingest_lab.py data/field/lab_raw_2026-10-25.txt
+python src/summarise_lab.py data/field/lab_results_2026-10-25.csv
+```
+
+Replicate means:
+
+| Spring | pH | Nitrite mg/L | Sulfate mg/L | Iron mg/L | Chlorine mg/L | Water degC | Air degC |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| ALA-0001 | 7.25 | 3.67 | 9 | 0.030 | 0.00 | 8.0 | 5 |
+| ALA-0002 | 7.94 | 3.67 | 2 | 0.013 | 0.00 | 2.0 | 4 |
+| ALA-0003 | 7.47 | 3.00 | 2 | 0.007 | 0.00 | 6.0 | 3 |
+| ALA-0004 | 8.15 | 3.00 | 54 (65.7) | 0.103 | 0.00 | 12.5 | -1 |
+| ALA-0005 | 7.85 | 4.33 | 4 | 0.007 | 0.00 | 1.5 | -3 |
+| ALA-0006 | 7.64 | 6.33 | 9 | 0.010 | 0.03 | 5.0 | -3 |
+
+Hardness was also reported — 25, 25, 25, 7, 15, 25 — **without units**, and is
+therefore not in this table. 25 mg/L CaCO3 is very soft water and 25 °dH is
+very hard water; the two readings differ by a factor of about 18, so the column
+is stored with `unit=unknown` and excluded from every comparison until the
+laboratory answers.
+
+#### What the replicates show about the method
+
+**The first reading of a triplicate is systematically the highest.** Across the
+17 triplicates that could vary at all — sulfate and chlorine returned identical
+repeats and carry no ordering information — the first reading was the strict
+maximum in 13. Under exchangeable readings that happens with probability
+0.0003. This is an instrument or procedure effect, not a property of the water:
+insufficient stabilisation, carry-over between readings, or a missing rinse
+step. Until it is traced, triplicate means are biased upward.
+
+**Sulfate repeats are identical in all six samples, and that is not precision.**
+A readout returning the same number three times is quantised. The one sample
+measured twice proves the point: ALA-0004 gave 54 mg/L by the routine method
+and 65.7 mg/L by the laboratory's reference method, a difference of 17.8%. A
+standard deviation of zero alongside a 17.8% method bias is exactly the trap
+that reporting replicate spread as uncertainty would set. The other five
+sulfate figures were measured only by the routine method and inherit an
+unquantified bias of unknown size.
+
+#### ALA-0004 is different from the other five
+
+It has the highest pH (8.15), the highest sulfate (54–65.7 against 2–9
+elsewhere), the highest iron (0.103 against 0.007–0.030), the lowest hardness
+(7 against 15–25 in whatever units), and the warmest water by a wide margin:
+12.5 °C while the air was -1 °C.
+
+The thermal part survives the obvious confound. Air temperature fell through
+the afternoon, so a water-minus-air difference is not comparable between sites
+visited hours apart. But ALA-0005 and ALA-0006 were sampled 22 and 32 minutes
+after ALA-0004 under near-identical air temperature, and their water was 1.5 °C
+and 5.0 °C. ALA-0004 is warm relative to its immediate neighbours in time, not
+merely relative to a colder hour.
+
+A warm, more mineralised outlet is what deeper circulation looks like. It is
+also what a different aquifer, a leaking pipe, or a mislabelled sample looks
+like. One sample cannot separate those, and **the lowest hardness coinciding
+with the highest sulfate does not fit the simple deep-circulation story** — it
+is the kind of internal tension that usually means a measurement needs
+repeating, not a mechanism needs inventing. ALA-0004 is also one of the two
+springs absent from OpenStreetMap.
+
+#### Nitrite
+
+Every sample sits at or above the WHO provisional guideline value for nitrite
+of 3 mg/L, ranging from 3.0 to 6.3 mg/L.
+
+This must not be read as a health finding yet, for a specific reason: the
+report does not say whether the figures are nitrite ion (NO2-) or nitrite as
+nitrogen (NO2-N). The two differ by a factor of 3.28, and the guideline is
+stated for the ion. The question has been sent back to the laboratory and is
+the single most consequential open item in this batch.
+
+Three further cautions apply regardless of the answer. The first-reading bias
+above inflates these means. Nitrite in groundwater is usually transient and
+can indicate recent contamination rather than a stable condition, so a single
+visit cannot establish a persistent level. And this project performs no
+microbiological testing at all — the contamination that actually makes spring
+water dangerous would not appear anywhere in this table.
+
+#### Open questions with the laboratory
+
+Listed in full at the end of
+[`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt):
+hardness units, nitrite species, chlorine units, methods and detection limits
+for every analyte, which method produced each sulfate figure, and the analyst
+and analysis date for the record. The many 0.00 results are almost certainly
+non-detects rather than true zeros, and cannot be stored correctly until the
+detection limits are known.
 
 ---
 

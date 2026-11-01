@@ -1,0 +1,105 @@
+Laboratory results, first batch, as supplied.
+Samples collected 2026-10-25. Received 2026-11-01.
+
+Transcribed verbatim from the laboratory's message, including its original
+Russian labels and its mixed use of "." and "," as the decimal separator.
+This file is the transcription source for data/field/lab_results_2026-10-25.csv
+and is kept unedited so that any later correction can be traced back to what
+was actually reported.
+
+Open questions sent back to the laboratory are listed at the end.
+
+---
+
+Исследование
+
+На Cl2
+Проба 1: 0.0; 0.0; 0.0
+Проба 2: 0.0 ; 0.0 ; 0.0
+Проба 3: 0.0 ; 0.0 ; 0.0
+Проба 4: 0,0 ; 0,0 ; 0,0
+Проба 5: 0,0 ; 0,0 ; 0,0
+Проба 6: 0,1 ; 0.0 ; 0.0
+
+на pH:
+Проба 1: 7.27 ; 7.26 ; 7.23
+Проба 2: 7.93 ; 7.94 ; 7.95
+Проба 3: 7.50 ; 7.47 ; 7.45
+Проба 4: 8.14 ; 8.15 ; 8.17
+Проба 5: 7.87 ; 7.85 ; 7.84
+Проба 6: 7.66 ; 7.64; 7.62
+
+на NO2: (mg/L)
+Проба 1: 5 ; 3 ; 3
+Проба 2: 5 ; 3 ; 3
+Проба 3: 4 ; 3 ; 2
+Проба 4: 3 ; 3 ; 3
+Проба 5: 5 ; 4 ; 4
+Проба 6: 7 ; 6 ; 6
+
+на SO4 (2-) (mg/L) :
+Проба 1: 9 ; 9 ; 9
+Проба 2: 2 ; 2 ; 2
+Проба 3: 2 ; 2 ; 2
+Проба 4: 54 ; 54; 54
+Проба 5: 4; 4; 4
+Проба 6: 9; 9; 9
+
+на Fe (mg/l)
+Проба 1: 0.03 ; 0.03 ; 0.03
+Проба 2: 0.03 ; 0.01 ; 0.00
+Проба 3: 0.02; 0.00; 0.00
+Проба 4: 0.10; 0.10 ; 0.11
+Проба 5: 0.01; 0.00; 0.01
+Проба 6: 0.02; 0.00 ; 0.01
+
+На жестокость:
+Проба 1: 25
+Проба 2: 25
+Проба 3: 25
+Проба 4: 7
+Проба 5: 15
+Проба 6: 25
+
+На SO4
+4 проба: 65.7
+точная проба
+
+---
+
+Field temperatures, same visit (not laboratory data):
+
+Р1 8°С на улице 5°С
+Р2 2°С на улице 4°С
+Р3 6°С на улице 3°С
+Р4 12,5°С на улице -1°С
+Р5 1,5°С на улице -3°С
+Р6 5°С на улице -3°С
+
+---
+
+OPEN QUESTIONS, pending answers from the laboratory
+(each one blocks a specific use of the data; none are stylistic)
+
+1. Hardness units. "25" is reported without a unit. 25 mg/L CaCO3 is very soft
+   water; 25 °dH is very hard water -- a factor of about 18 between the two
+   readings. Until this is answered the hardness column cannot be interpreted
+   at all, and it is stored with unit `unknown`.
+
+2. Nitrite: is the figure reported as NO2- or as NO2-N? The two differ by a
+   factor of 3.28, and the distinction decides whether the values sit above or
+   below the WHO guideline.
+
+3. Chlorine units -- presumed mg/L, not stated.
+
+4. Methods and detection limits for every analyte. Several results are 0.00,
+   which is almost certainly "below the detection limit" rather than a true
+   zero; without the limit they cannot be recorded correctly (see
+   data/README.md section 3, non-detects).
+
+5. Sulfate for sample 4 was reported twice: 54 in the routine series and 65.7
+   as a "точная проба" (reference measurement). Which method produced which
+   figure, and does the same bias apply to the other five samples, which were
+   only measured by the routine method?
+
+6. Analyst name for the record, and the analysis date.

@@ -1,1 +1,1 @@
-spring_id,sample_id,analyte,value,unit,below_lod,lod,method,lab,analyst,sampled_at,analysed_at,notes
+spring_id,sample_id,replicate,analyte,value,unit,below_lod,lod,method,lab,analyst,sampled_at,analysed_at,notes

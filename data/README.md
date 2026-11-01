@@ -111,6 +111,7 @@ Template: `data/lab_results_template.csv`.
 |---|---|---|---|
 | `spring_id` | string | yes | Links to the spring record, `ALA-####` |
 | `sample_id` | string | yes | Laboratory's own sample identifier |
+| `replicate` | int | no | 1-based index within a replicate set; empty for a single measurement |
 | `analyte` | string | yes | What was measured, e.g. `nitrate`, `hardness`, `E_coli` |
 | `value` | float | yes | Result, in `unit` |
 | `unit` | string | yes | e.g. `mg/L`, `CFU/100mL`, `uS/cm`, `pH` |
@@ -131,6 +132,16 @@ and **not** left blank. Both of those destroy information: zero asserts absence
 that was never demonstrated, and blank is indistinguishable from "not
 measured". Any analysis of these columns must branch on `below_lod` rather
 than treat `value` as a plain number.
+
+### Replicates
+
+Replicates are stored as separate rows, not averaged on entry. The mean is a
+derived quantity and belongs in analysis; the spread between repeats is
+evidence about the method and is destroyed the moment it is averaged away.
+
+The first batch justified this immediately: across the triplicates that could
+vary at all, the first reading was the highest in 13 of 17 (p = 0.0003). That
+is visible only while the individual readings exist.
 
 ### Relationship to field readings
 
