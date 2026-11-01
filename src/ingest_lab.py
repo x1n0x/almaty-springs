@@ -51,19 +51,25 @@ SAMPLED_AT = {
 # `unit` of "unknown" is deliberate and must not be guessed: see the open
 # questions at the end of the raw file.
 SECTIONS = [
-    (r"Cl2", "free_chlorine", "mg/L", "unit not stated by the lab; mg/L presumed"),
+    (r"Cl2", "free_chlorine", "mg/L", "unit confirmed by the lab"),
     (r"на\s+pH", "ph", "pH", ""),
-    (r"NO2", "nitrite", "mg/L", "lab did not state whether reported as NO2- or NO2-N"),
+    (r"NO2", "nitrite", "mg/L", "confirmed by the lab as NO2- (the ion), not NO2-N"),
     (r"SO4\s*\(2-\)", "sulfate", "mg/L", ""),
     (r"Fe", "iron", "mg/L", ""),
     # The report spells it "жестокость"; the intended word is "жёсткость".
-    (
-        r"жест[оё]к",
-        "hardness",
-        "unknown",
-        "UNIT NOT REPORTED; mg/L CaCO3 and degrees dH differ ~18x",
-    ),
+    (r"жест[оё]к", "hardness", "mg/L CaCO3", ""),
 ]
+
+# Total-hardness strip, grains per gallon -> mg/L CaCO3, taken from the
+# manufacturer's own six-level chart rather than from the textbook factor of
+# 17.118. The strip only ever returns one of these six levels, so converting a
+# quantised reading with a more precise factor would invent resolution the
+# measurement does not have.
+#
+# The laboratory reported the gpg column: 7 and 15 appear nowhere in the ppm
+# column, which settles which of the two columns was being read.
+HARDNESS_GPG_TO_PPM = {0: 0, 1.5: 25, 3: 50, 7: 120, 15: 250, 25: 425}
+HARDNESS_TOP_OF_SCALE = 25  # gpg; readings here are right-censored
 
 LAB = "DKU"
 
@@ -101,6 +107,28 @@ def rows_for(
     out: list[dict] = []
     for sample, values in sorted(block.items()):
         for index, value in enumerate(values, start=1):
+            row_note = note
+            stored = value
+
+            if analyte == "hardness":
+                if value not in HARDNESS_GPG_TO_PPM:
+                    raise SystemExit(
+                        f"hardness {value} is not a level on the strip chart"
+                    )
+                stored = HARDNESS_GPG_TO_PPM[value]
+                row_note = f"strip reading {value:g} gpg, converted with the chart"
+                if value >= HARDNESS_TOP_OF_SCALE:
+                    row_note += (
+                        "; TOP OF SCALE -- right-censored, true value is >= "
+                        f"{stored} and the strip cannot resolve how much more"
+                    )
+
+            # A reported zero means the sample read the same as distilled
+            # water, which the lab confirmed. That is a non-detect, not a
+            # measured zero. The numeric limit was not supplied, so `lod`
+            # stays empty: the flag is known, the threshold is not.
+            below_lod = "true" if (stored == 0 and analyte != "ph") else ""
+
             row = dict.fromkeys(FIELDNAMES, "")
             row.update(
                 {
@@ -108,17 +136,13 @@ def rows_for(
                     "sample_id": f"P{sample}",
                     "replicate": index if len(values) > 1 else "",
                     "analyte": analyte,
-                    "value": f"{value:g}",
+                    "value": f"{stored:g}",
                     "unit": unit,
-                    # Zeros are recorded as reported. They are almost certainly
-                    # non-detects, but `below_lod` stays empty until the lab
-                    # supplies detection limits -- marking them true now would
-                    # be inventing a limit that was never stated.
-                    "below_lod": "",
+                    "below_lod": below_lod,
                     "method": method,
                     "lab": LAB,
                     "sampled_at": SAMPLED_AT[sample],
-                    "notes": note,
+                    "notes": row_note,
                 }
             )
             out.append(row)

@@ -31,7 +31,7 @@ from pathlib import Path
 # Comparison values, for orientation only.
 # WHO Guidelines for Drinking-water Quality, 4th edition.
 GUIDELINES = {
-    "nitrite": (3.0, "mg/L", "WHO provisional guideline, NO2- , short-term exposure"),
+    "nitrite": (3.0, "mg/L", "WHO provisional guideline, NO2- confirmed by the lab"),
     "free_chlorine": (5.0, "mg/L", "WHO guideline value"),
     "iron": (0.3, "mg/L", "WHO: no health-based guideline; taste/staining threshold"),
     "sulfate": (250.0, "mg/L", "WHO: no health-based guideline; taste threshold"),
@@ -206,6 +206,30 @@ def check_guidelines(groups: dict) -> None:
             mean = statistics.mean(values)
             flag = "  <-- at or above" if mean >= limit else ""
             print(f"     {key[1]:10} {mean:7.3f}{flag}")
+        print()
+
+    hardness_keys = [k for k in groups if k[0] == "hardness"]
+    if hardness_keys:
+        # Conventional descriptive bands for total hardness as CaCO3. There is
+        # no WHO health-based guideline for hardness.
+        bands = [(60, "soft"), (120, "moderately hard"), (180, "hard")]
+        print("  hardness -- mg/L CaCO3 (no health-based guideline)")
+        censored = 0
+        for key in sorted(hardness_keys, key=lambda k: k[1]):
+            value = statistics.mean(v for _, v in groups[key])
+            label = next((name for limit, name in bands if value < limit), "very hard")
+            note = ""
+            if value >= 425:
+                censored += 1
+                note = "   (top of strip scale: >= 425, right-censored)"
+            print(f"     {key[1]:10} {value:7.0f}  {label}{note}")
+        if censored:
+            print(f"\n     {censored} of {len(hardness_keys)} readings sit at the top")
+            print("     of the strip's range. Their true values are unknown above")
+            print("     425 mg/L, so they cannot be compared with each other and")
+            print("     any mean computed across them is a lower bound, not an")
+            print("     estimate. A titration or a wider-range method is needed")
+            print("     before hardness supports any quantitative statement.")
         print()
 
     ph_keys = [k for k in groups if k[0] == "ph"]

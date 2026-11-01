@@ -244,7 +244,7 @@ python src/validate.py data/raw/osm_springs.csv
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
 | Laboratory analysis | First batch received 2026-11-01, six analytes |
 | RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | Blocked on unit clarifications, see below |
+| RQ2-RQ4 hydrochemistry | First batch analysed; needs a repeat round |
 | RQ5 accessibility | Not started |
 
 ### First extract
@@ -333,20 +333,46 @@ python src/summarise_lab.py data/field/lab_results_2026-10-25.csv
 
 Replicate means:
 
-| Spring | pH | Nitrite mg/L | Sulfate mg/L | Iron mg/L | Chlorine mg/L | Water degC | Air degC |
+| Spring | pH | Nitrite mg/L | Sulfate mg/L | Hardness mg/L CaCO3 | Iron mg/L | Water degC | Air degC |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| ALA-0001 | 7.25 | 3.67 | 9 | 0.030 | 0.00 | 8.0 | 5 |
-| ALA-0002 | 7.94 | 3.67 | 2 | 0.013 | 0.00 | 2.0 | 4 |
-| ALA-0003 | 7.47 | 3.00 | 2 | 0.007 | 0.00 | 6.0 | 3 |
-| ALA-0004 | 8.15 | 3.00 | 54 (65.7) | 0.103 | 0.00 | 12.5 | -1 |
-| ALA-0005 | 7.85 | 4.33 | 4 | 0.007 | 0.00 | 1.5 | -3 |
-| ALA-0006 | 7.64 | 6.33 | 9 | 0.010 | 0.03 | 5.0 | -3 |
+| ALA-0001 | 7.25 | 3.67 | 9 | >=425 | 0.030 | 8.0 | 5 |
+| ALA-0002 | 7.94 | 3.67 | 2 | >=425 | 0.013 | 2.0 | 4 |
+| ALA-0003 | 7.47 | 3.00 | 2 | >=425 | 0.007 | 6.0 | 3 |
+| ALA-0004 | 8.15 | 3.00 | 54 (65.7) | 120 | 0.103 | 12.5 | -1 |
+| ALA-0005 | 7.85 | 4.33 | 4 | 250 | 0.007 | 1.5 | -3 |
+| ALA-0006 | 7.64 | 6.33 | 9 | >=425 | 0.010 | 5.0 | -3 |
 
-Hardness was also reported — 25, 25, 25, 7, 15, 25 — **without units**, and is
-therefore not in this table. 25 mg/L CaCO3 is very soft water and 25 °dH is
-very hard water; the two readings differ by a factor of about 18, so the column
-is stored with `unit=unknown` and excluded from every comparison until the
-laboratory answers.
+Free chlorine was below detection everywhere except a single 0.1 mg/L first
+reading at ALA-0006, which the replicate-order bias below makes hard to take at
+face value. Zeros throughout are non-detects, not measured zeros: the
+laboratory confirmed a reported 0 means the sample read the same as distilled
+water. They are stored with `below_lod=true` and no numeric limit, because the
+limit itself has not been supplied.
+
+#### The hardness units, and why the answer mattered
+
+Hardness arrived as 25, 25, 25, 7, 15, 25 with no unit. A photograph of the
+test-strip bottle settled it. The strip is a Total Hardness (as CaCO3) strip
+with a six-level chart carrying two columns:
+
+```
+ppm:   0    25    50   120   250   425
+gpg:   0   1.5     3     7    15    25
+       SOFT -------- HARD ------ VERY HARD
+```
+
+The values 7 and 15 appear nowhere in the ppm column and both appear in the
+gpg column, so the gpg column was the one being read, and "25" means 25 gpg —
+**425 mg/L CaCO3, very hard water**, not the 25 mg/L of a very soft one. The
+reading that looked like the softest water on the list was in fact the
+hardest, by a factor of 17.
+
+**Four of the six readings sit on the top level of the strip.** They are
+right-censored: the true hardness is at least 425 mg/L and the strip cannot
+say how much more. Those four cannot be ranked against each other, and any
+mean across them is a lower bound rather than an estimate. Hardness will not
+support a quantitative statement until it is measured by titration or by a
+method with a wider range.
 
 #### What the replicates show about the method
 
@@ -370,9 +396,9 @@ unquantified bias of unknown size.
 #### ALA-0004 is different from the other five
 
 It has the highest pH (8.15), the highest sulfate (54–65.7 against 2–9
-elsewhere), the highest iron (0.103 against 0.007–0.030), the lowest hardness
-(7 against 15–25 in whatever units), and the warmest water by a wide margin:
-12.5 °C while the air was -1 °C.
+elsewhere), the highest iron (0.103 against 0.007–0.030), by far the lowest
+hardness (120 mg/L against ≥425 at four of the other five), and the warmest
+water by a wide margin: 12.5 °C while the air was -1 °C.
 
 The thermal part survives the obvious confound. Air temperature fell through
 the afternoon, so a water-minus-air difference is not comparable between sites
@@ -381,41 +407,66 @@ after ALA-0004 under near-identical air temperature, and their water was 1.5 °C
 and 5.0 °C. ALA-0004 is warm relative to its immediate neighbours in time, not
 merely relative to a colder hour.
 
-A warm, more mineralised outlet is what deeper circulation looks like. It is
-also what a different aquifer, a leaking pipe, or a mislabelled sample looks
-like. One sample cannot separate those, and **the lowest hardness coinciding
-with the highest sulfate does not fit the simple deep-circulation story** — it
-is the kind of internal tension that usually means a measurement needs
-repeating, not a mechanism needs inventing. ALA-0004 is also one of the two
-springs absent from OpenStreetMap.
+Resolving the hardness units changed how this reads. While hardness was
+assumed to be in mg/L, ALA-0004 looked internally contradictory — the least
+mineralised sample also had the most sulfate — and that tension was recorded
+here as a reason to suspect a bad measurement. With the units settled, the
+pattern is coherent instead.
+
+The other springs are carbonate waters: very hard, almost no sulfate. ALA-0004
+has roughly a quarter of their hardness, five times the sulfate, more iron,
+higher pH and warmer water. Sulfate from dissolving gypsum would *raise*
+hardness, since it arrives paired with calcium. Sulfate rising while calcium
+hardness falls means the two are not arriving together, and that combination —
+low hardness, high pH, more iron, warmer, longer-travelled water — is the
+classic signature of calcium being exchanged for sodium along a deeper flow
+path.
+
+**This is a hypothesis, not a result, and it is written down because it is
+testable.** It predicts high sodium and low calcium at ALA-0004 relative to the
+others. None of sodium, calcium, magnesium, alkalinity or conductivity were
+measured in this batch, so nothing here confirms it. The competing
+explanations — a different aquifer, a leaking pipe, a mislabelled sample —
+remain open, and one visit cannot separate them. ALA-0004 is also one of the
+two springs absent from OpenStreetMap.
 
 #### Nitrite
 
 Every sample sits at or above the WHO provisional guideline value for nitrite
 of 3 mg/L, ranging from 3.0 to 6.3 mg/L.
 
-This must not be read as a health finding yet, for a specific reason: the
-report does not say whether the figures are nitrite ion (NO2-) or nitrite as
-nitrogen (NO2-N). The two differ by a factor of 3.28, and the guideline is
-stated for the ion. The question has been sent back to the laboratory and is
-the single most consequential open item in this batch.
+The laboratory has confirmed these are nitrite ion (NO2-), not nitrite as
+nitrogen, so they are directly comparable with the guideline, which is stated
+for the ion. That was the one answer that could have moved the figures by a
+factor of 3.28, and it did not: the comparison stands as written.
 
-Three further cautions apply regardless of the answer. The first-reading bias
-above inflates these means. Nitrite in groundwater is usually transient and
-can indicate recent contamination rather than a stable condition, so a single
-visit cannot establish a persistent level. And this project performs no
-microbiological testing at all — the contamination that actually makes spring
-water dangerous would not appear anywhere in this table.
+Three cautions remain, and they are not small. The first-reading bias
+documented above inflates every one of these means, and the bias has not been
+traced or quantified. Nitrite in groundwater is usually transient — it often
+marks recent contamination rather than a stable condition — so one visit
+cannot establish a persistent level, and a repeat sampling round is the next
+thing this project needs. And no microbiological testing was performed at all,
+so the contamination that actually makes spring water dangerous would not
+appear anywhere in this table.
+
+What can be said is narrow and worth saying: on one day in October 2026, all
+six springs measured at or above the WHO provisional guideline value for
+nitrite, and that is a reason to sample them again rather than a verdict about
+them.
 
 #### Open questions with the laboratory
 
-Listed in full at the end of
+Four of the six questions put to the laboratory have been answered and are
+recorded with the answers at the end of
 [`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt):
-hardness units, nitrite species, chlorine units, methods and detection limits
-for every analyte, which method produced each sulfate figure, and the analyst
-and analysis date for the record. The many 0.00 results are almost certainly
-non-detects rather than true zeros, and cannot be stored correctly until the
-detection limits are known.
+hardness units, nitrite species, chlorine units, and the meaning of a reported
+zero.
+
+Two remain open. Which method produced 54 mg/L and which produced 65.7 mg/L
+for sulfate at ALA-0004, and whether the same bias applies to the five samples
+measured only one way. And the analyst name and analysis date for the record.
+Numeric detection limits were not supplied either, so non-detects carry the
+flag but no threshold.
 
 ---
 

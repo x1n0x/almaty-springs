@@ -127,7 +127,11 @@ Template: `data/lab_results_template.csv`.
 ### Non-detects
 
 A result below the detection limit is recorded with `below_lod=true`, `value`
-set to the detection limit, and `lod` filled. It is **not** recorded as zero
+set to the detection limit, and `lod` filled. Where the laboratory confirms a
+reading is a non-detect but does not supply the numeric limit — as in the first
+batch, where a reported 0 was explained as "read the same as distilled water" —
+the flag is set and `lod` stays empty. The flag is known; the threshold is not,
+and inventing one would be worse than leaving it blank. It is **not** recorded as zero
 and **not** left blank. Both of those destroy information: zero asserts absence
 that was never demonstrated, and blank is indistinguishable from "not
 measured". Any analysis of these columns must branch on `below_lod` rather

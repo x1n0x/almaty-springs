@@ -78,8 +78,8 @@ Field temperatures, same visit (not laboratory data):
 
 ---
 
-OPEN QUESTIONS, pending answers from the laboratory
-(each one blocks a specific use of the data; none are stylistic)
+QUESTIONS SENT TO THE LABORATORY, 2026-11-01
+(each one blocks a specific use of the data; answers follow below)
 
 1. Hardness units. "25" is reported without a unit. 25 mg/L CaCO3 is very soft
    water; 25 °dH is very hard water -- a factor of about 18 between the two
@@ -103,3 +103,52 @@ OPEN QUESTIONS, pending answers from the laboratory
    only measured by the routine method?
 
 6. Analyst name for the record, and the analysis date.
+
+
+---
+
+ANSWERS, 2026-11-01
+
+1. Hardness units: ANSWERED by a photograph of the test-strip bottle.
+
+   The strip is a Total Hardness (as CaCO3) strip with a six-level colour
+   chart carrying two columns:
+
+       ppm:   0    25    50   120   250   425
+       gpg:   0   1.5     3     7    15    25
+              SOFT -------- HARD ------ VERY HARD
+
+   The reported set was 25, 25, 25, 7, 15, 25. The values 7 and 15 do not
+   appear in the ppm column at all; both appear in the gpg column. The gpg
+   column was therefore the one being read, and "25" means 25 gpg, not
+   25 ppm.
+
+   Converted with the manufacturer's own chart:
+
+       sample 1   25 gpg = 425 ppm CaCO3   VERY HARD
+       sample 2   25 gpg = 425 ppm CaCO3   VERY HARD
+       sample 3   25 gpg = 425 ppm CaCO3   VERY HARD
+       sample 4    7 gpg = 120 ppm CaCO3   HARD
+       sample 5   15 gpg = 250 ppm CaCO3   VERY HARD
+       sample 6   25 gpg = 425 ppm CaCO3   VERY HARD
+
+   NOTE: 425 ppm is the top level of the chart. Four of the six samples sit
+   there, so those readings are right-censored: the true hardness is at least
+   425 ppm and the strip cannot say how much more. Differences in hardness
+   between samples 1, 2, 3 and 6 are not resolvable with this strip.
+
+2. Nitrite species: ANSWERED. The instrument reported NO2-, not NO2-N.
+   The figures are therefore directly comparable with the WHO provisional
+   guideline value of 3 mg/L, which is stated for the ion.
+
+3. Chlorine units: ANSWERED. mg/L.
+
+4. Zeros: ANSWERED. A reported 0 means the sample read the same as distilled
+   water, i.e. indistinguishable from the blank. These are non-detects, not
+   true zeros, and are now stored with below_lod=true. The numeric detection
+   limit itself was not supplied, so `lod` stays empty.
+
+5. Sulfate, sample 4 - which method gave 54 and which gave 65.7, and whether
+   the same bias applies to the other five samples: STILL OPEN.
+
+6. Analyst name and analysis date: STILL OPEN.
