@@ -536,10 +536,28 @@ Outstanding:
   rests on range, but it must be settled before any future nitrite figure is
   used.
 
-The laboratory has confirmed it holds no low-range nitrite test, so that
-re-measurement cannot be done with what is on the bench. The same applies to
-ammonium. Both need a test to be bought — NitriVer 3 powder pillows or
-LCK 341 for nitrite, LCK 304 for ammonium — or the samples sent elsewhere.
+**Recovering the iron method.** The DR 3900 keeps a measurement log: every
+reading is stored with its programme, result and timestamp. If iron appears in
+the log for 26 October 2026, that settles which programme produced it without
+anyone having to remember. If it does not appear, iron was not measured on
+this instrument, which is itself the answer and points at a strip or a second
+device. Either outcome closes the question; the log is the first place to look.
+
+That log is worth retrieving regardless. Per-reading timestamps would show how
+long elapsed between the three replicates of a set, which is the most direct
+test available of whether the order-of-reading bias is a stabilisation effect.
+
+**Nitrite and ammonium cannot be recovered from the stored samples.** Both
+species are unstable in storage, and the samples were taken on 25 October.
+Re-running them now would measure the storage, not the springs. These two
+analytes need a fresh sampling round, which makes them a task for the next
+field trip rather than for the laboratory.
+
+The laboratory holds no low-range test for either, so the next trip should be
+planned around tests that have to be acquired first: NitriVer 3 powder pillows
+or LCK 341 for nitrite, LCK 304 for ammonium. The same trip is the natural
+occasion to collect the sodium, calcium and magnesium that would test the
+ALA-0004 hypothesis in section 8.
 
 
 ### Second laboratory batch, received 7 November 2026
