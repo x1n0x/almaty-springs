@@ -35,6 +35,8 @@ GUIDELINES = {
     "chlorine": (5.0, "mg/L", "WHO guideline value for free chlorine"),
     "iron": (0.3, "mg/L", "WHO: no health-based guideline; taste/staining threshold"),
     "sulfate": (250.0, "mg/L", "WHO: no health-based guideline; taste threshold"),
+    "copper": (2.0, "mg/L", "WHO health-based guideline value"),
+    "turbidity": (5.0, "NTU", "WHO aesthetic; <1 NTU preferred for disinfection"),
 }
 PH_OPERATIONAL = (6.5, 8.5)
 
@@ -211,6 +213,8 @@ METHOD_SPECS = {
     "hach_dr3900_prog680_SulfaVer4": (2, 70, None, "sulfate, SulfaVer 4"),
     "hach_cuvette_test_barcoded": (40, 150, None, "sulfate, barcoded cuvette test"),
     "hach_dr3900_prog88_DPD_530nm": (0, 10, None, "chlorine free+total, DPD"),
+    "hach_lck303_cuvette": (2, 47, None, "ammonium, LCK 303 cuvette test"),
+    "hach_dr3900_CuVer1_bicinchoninate": (0.04, 5.0, None, "copper, CuVer 1"),
 }
 
 
@@ -251,9 +255,26 @@ def check_method_fit(rows: list[dict]) -> set[str]:
         low, high, step, label = METHOD_SPECS[method]
         lo, hi = min(values), max(values)
         position = hi / high * 100
+        under = [v for v in values if v < low]
+        negative = [v for v in values if v < 0]
         print(f"  {label}")
         print(f"     method range {low}-{high}; samples {lo:g}-{hi:g} "
               f"(top sample at {position:.0f}% of range)")
+        if under:
+            print(f"     {len(under)} of {len(values)} readings are BELOW the "
+                  f"method's floor of {low:g}")
+            if negative:
+                print(f"     {len(negative)} of them are negative, which is not "
+                      "a concentration at all:")
+                print("     the instrument extrapolated off the bottom of its")
+                print("     calibration and said so on screen.")
+            if len(under) > len(values) / 2:
+                unusable.add(analyte_of[method])
+                print()
+                print("     -> WRONG TEST. Most readings fall outside the range")
+                print("        this method is calibrated for, so most of this")
+                print("        column is not a measurement. A test covering the")
+                print("        concentrations actually present is needed.")
         if step:
             worst = step / lo * 100 if lo else float("inf")
             best = step / hi * 100 if hi else float("inf")
@@ -268,7 +289,7 @@ def check_method_fit(rows: list[dict]) -> set[str]:
                 print("        other or from zero, and no threshold comparison")
                 print("        based on them can stand. A low-range method is")
                 print("        required and the measurement must be repeated.")
-        elif position < 10:
+        elif position < 10 and not under:
             print("     -> Readings sit in the bottom tenth of the range;")
             print("        treat small differences between them with care.")
         print()

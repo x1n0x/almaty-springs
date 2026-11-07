@@ -242,9 +242,9 @@ python src/validate.py data/raw/osm_springs.csv
 | Interactive map | Implemented |
 | Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
-| Laboratory analysis | First batch received 2026-11-01, six analytes |
+| Laboratory analysis | Two batches, nine analytes, 151 measurements |
 | RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | Sulfate and pH usable; nitrite and iron need re-analysis |
+| RQ2-RQ4 hydrochemistry | 4 of 9 analytes usable; nitrite, ammonium, iron need re-analysis |
 | RQ5 accessibility | Not started |
 
 ### First extract
@@ -507,6 +507,9 @@ defended later.
 | Sulfate (ALA-0004 only) | Hach barcoded cuvette test | 40–150 mg/L | yes |
 | Hardness | Total-hardness test strip | 6 levels to 425 mg/L | censored at the top |
 | Iron | **unrecorded** | — | **no — provenance unknown** |
+| Copper | Hach DR 3900, CuVer 1 bicinchoninate | 0.04–5.00 mg/L | yes, at its floor |
+| Turbidity | VELP Scientifica TB1 | — | yes |
+| Ammonium | Hach DR 3900, LCK 303 cuvette | 2–47 mg/L NH4-N | **no — wrong test** |
 
 `src/summarise_lab.py` now checks this automatically: check 5 compares each
 method's published span and resolution against the values it actually
@@ -517,19 +520,95 @@ and the numbers looked entirely reasonable.
 
 #### Open questions with the laboratory
 
-Ten questions have been answered across three rounds and are recorded with the
-answers at the end of
-[`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
-Asking for programme numbers is what surfaced the nitrite range problem; none
-of the earlier rounds would have.
+Answers have come in three rounds and are recorded with the questions at the
+end of [`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
+Asking for programme numbers is what surfaced the range problems; none of the
+earlier rounds would have.
 
 Outstanding:
 
 - **How iron was measured.** Blocks the iron column entirely.
-- **A low-range nitrite re-analysis** (programme 371, NitriVer 3). A
-  re-measurement, not a document.
 - **pH electrode calibration date** for the Metrohm 913.
 - **Reagent lot numbers and expiry dates.**
+- **Whether nitrite programme 373 reports NO2- or NO2-N.** The laboratory said
+  the ion, but the programme title as displayed reads "Нитрит N … 373", and
+  the N may denote nitrogen. It does not affect the current withdrawal, which
+  rests on range, but it must be settled before any future nitrite figure is
+  used.
+
+The laboratory has confirmed it holds no low-range nitrite test, so that
+re-measurement cannot be done with what is on the bench. The same applies to
+ammonium. Both need a test to be bought — NitriVer 3 powder pillows or
+LCK 341 for nitrite, LCK 304 for ammonium — or the samples sent elsewhere.
+
+
+### Second laboratory batch, received 7 November 2026
+
+Three further analytes on the same six samples, bringing the file to 151
+measurements.
+
+| Spring | Copper mg/L | Turbidity NTU | Ammonium mg/L NH4-N* |
+|---|---:|---:|---:|
+| ALA-0001 | 0.060 | 0.50 | −0.10 |
+| ALA-0002 | 0.040 | 0.98 | −0.75 |
+| ALA-0003 | 0.107 | 0.09 | 2.93 |
+| ALA-0004 | 0.090 | 0.06 | 0.36 |
+| ALA-0005 | 0.027 | 0.20 | −0.31 |
+| ALA-0006 | 0.073 | 0.07 | 0.71 |
+
+#### Ammonium: the wrong test, and the instrument said so
+
+Ammonium was run on **LCK 303**, whose range is printed on its own box:
+2–47 mg/L NH4-N. The samples returned −0.79 to 2.99. Fifteen of the eighteen
+readings fall below the method's floor and **nine are negative** — not low
+concentrations but impossibilities, produced by extrapolating off the bottom
+of a calibration. The DR 3900 flagged it in red on screen: *Отрицательный
+результат!*
+
+Only ALA-0003 lands inside the range at all, and at 2.9 it sits barely above
+the 2.0 floor. The column is excluded from every comparison.
+
+This is the nitrite problem again in a more visible form. There the mismatch
+hid behind plausible small integers; here the instrument printed a negative
+number and refused to pretend. A spring is not wastewater, and a test built
+for 2–47 mg/L of ammonium has nothing to say about water that contains
+roughly none. The appropriate test is a low-range one — LCK 304 covers
+0.015–2.0 mg/L NH4-N.
+
+#### Copper and turbidity
+
+Copper, by CuVer 1 (bicinchoninate, range 0.04–5.00 mg/L), came in at
+0.027–0.107 mg/L: real readings, but in the bottom 2% of the range, with two
+of the eighteen below the method's 0.04 floor. Well under the WHO guideline of
+2 mg/L. The numbers are usable for "copper is low everywhere"; they are not
+usable for ranking the springs against each other.
+
+Turbidity, on a **VELP Scientifica TB1**, ran 0.06–0.98 NTU — clear water,
+comfortably below the 5 NTU aesthetic guideline, and mostly below the 1 NTU
+that matters for disinfection.
+
+Turbidity also offers the first physical explanation for the replicate-order
+bias. Its triplicates decline within a sample, sharply: ALA-0002 read 1.31,
+1.07, then 0.56. That is what settling looks like — particles dropping out of
+suspension in the cuvette between readings. It is a mechanism, not a mystery,
+and it suggests the general pattern may have more than one cause rather than a
+single procedural fault.
+
+With the second batch the bias is firmer, not weaker: the first reading is the
+strict maximum in **23 of 33** informative triplicates, p ≈ 0.0000, with copper
+at 4 of 4.
+
+#### Where the batch stands
+
+Of nine analytes measured, four are usable as reported — pH, sulfate, copper,
+turbidity — one is usable as a non-detect (chlorine), one is censored at the
+top of its scale (hardness), and three cannot be used: nitrite and ammonium
+were measured on methods built for concentrations an order of magnitude or two
+above what springs contain, and iron has no recorded method at all.
+
+Nothing was wrong with the analyst's work in the three usable cases, and
+nothing in the numbers themselves revealed the three bad ones. What revealed
+them was asking which method produced each column.
 
 ---
 

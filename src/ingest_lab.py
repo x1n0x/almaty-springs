@@ -61,7 +61,25 @@ SECTIONS = [
      "lab states the DR 3900 has no iron programme; method and instrument unknown"),
     # The report spells it "жестокость"; the intended word is "жёсткость".
     (r"жест[оё]к", "hardness", "mg/L CaCO3", "test_strip_total_hardness", ""),
+    # Second batch, 2026-11-07.
+    (r"На\s+Cu", "copper", "mg/L", "hach_dr3900_CuVer1_bicinchoninate",
+     "CuVer 1 range 0.04-5.00 mg/L; samples sit at its floor"),
+    (r"мутнометре", "turbidity", "NTU", "velp_tb1_turbidimeter",
+     "VELP Scientifica TB1; replicates decline within a sample, consistent "
+     "with particles settling between readings"),
+    (r"аммониум", "ammonium", "mg/L NH4-N", "hach_lck303_cuvette",
+     "LCK 303 range 2-47 mg/L NH4-N; five of six samples below it, three "
+     "returned negative results the instrument itself flagged"),
 ]
+
+# Lower end of each method's working range. A reading below it is not a small
+# measurement, it is an out-of-range one: the instrument is extrapolating off
+# the bottom of a calibration, which is how a concentration comes out negative.
+METHOD_LOWER_BOUND = {
+    "hach_lck303_cuvette": 2.0,
+    "hach_dr3900_CuVer1_bicinchoninate": 0.04,
+    "hach_dr3900_prog680_SulfaVer4": 2.0,
+}
 
 # Total-hardness strip, grains per gallon -> mg/L CaCO3, taken from the
 # manufacturer's own six-level chart rather than from the textbook factor of
@@ -86,8 +104,24 @@ ANALYSED_AT = "2026-10-26"
 SULFATE_CUVETTE = "hach_cuvette_test_barcoded"     # approx. 40-150 mg/L
 
 
-def parse_number(token: str) -> float:
-    return float(token.strip().replace(",", "."))
+# One number: optional sign, digits, optionally a decimal part introduced by
+# either separator.
+NUMBER = re.compile(r"-?\d+(?:[.,]\d+)?")
+
+
+def extract_numbers(text: str) -> list[float]:
+    """Pull the values out of a reported line.
+
+    The report separates replicates with semicolons in one batch and with
+    commas, or nothing but a space, in another -- while also using the comma
+    as a decimal mark. Splitting on a separator cannot work when the separator
+    and the decimal point are the same character, so the numbers are matched
+    directly instead and the separators ignored entirely.
+
+    A comma inside a match is always a decimal mark: "0,0" is one value,
+    because a comma used as a separator in this report is followed by a space.
+    """
+    return [float(m.group().replace(",", ".")) for m in NUMBER.finditer(text)]
 
 
 def parse_block(text: str, header: str) -> dict[int, list[float]]:
@@ -108,7 +142,12 @@ def parse_block(text: str, header: str) -> dict[int, list[float]]:
                 break
             continue
         number = int(match.group(1))
-        values = [parse_number(t) for t in match.group(2).split(";") if t.strip()]
+        values = extract_numbers(match.group(2))
+        if len(values) not in (1, 3):
+            raise SystemExit(
+                f"sample {number}: expected 1 or 3 values, read {values} "
+                f"from {match.group(2)!r}"
+            )
         results[number] = values
     return results
 
@@ -140,6 +179,21 @@ def rows_for(
             # measured zero. The numeric limit was not supplied, so `lod`
             # stays empty: the flag is known, the threshold is not.
             below_lod = "true" if (stored == 0 and analyte != "ph") else ""
+
+            # Below the method's own working range is the same situation with
+            # a known threshold. A negative concentration is the clearest case
+            # there is: the instrument extrapolated off the bottom of its
+            # calibration, and the DR 3900 flags it on screen.
+            bound = METHOD_LOWER_BOUND.get(method)
+            if bound is not None and stored < bound:
+                below_lod = "true"
+                detail = (
+                    "NEGATIVE result, flagged by the instrument"
+                    if stored < 0
+                    else "below the method's working range"
+                )
+                extra = f"{detail}; method floor {bound:g} {unit}"
+                row_note = f"{row_note}; {extra}" if row_note else extra
 
             row = dict.fromkeys(FIELDNAMES, "")
             row.update(
