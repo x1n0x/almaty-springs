@@ -598,17 +598,43 @@ With the second batch the bias is firmer, not weaker: the first reading is the
 strict maximum in **23 of 33** informative triplicates, p ≈ 0.0000, with copper
 at 4 of 4.
 
+#### What the laboratory work got right
+
+The sections above are mostly about three analytes that cannot be used, which
+leaves a false impression of the whole. Six of nine came through, and the
+bench practice behind them is better than much routine work:
+
+- **Everything was run in triplicate.** Most routine water analysis reports a
+  single number. Without these replicates the order-of-reading bias, the
+  settling in the turbidity cuvette and the quantisation of the sulfate
+  readout would all be invisible. Every finding in this section exists
+  because the replicates were taken.
+- **Analysis the day after sampling.** Nitrite and ammonium are unstable;
+  24 hours is good practice, and many laboratories do worse.
+- **Blanks were run.** A reported zero means "read the same as distilled
+  water", which is only knowable if the blank was measured.
+- **Sulfate was cross-checked by a second method** on the one sample where a
+  second method could reach. That is deliberate quality control, not routine,
+  and it is the only reason the 17.8% bias is known at all.
+- **The negative ammonium results were reported as they came.** This matters.
+  It would have been easy, and common, to write 0 or "<2" and move on.
+  Reporting −0.786 is what let the problem be seen within a day instead of
+  propagating into a published figure.
+
 #### Where the batch stands
 
-Of nine analytes measured, four are usable as reported — pH, sulfate, copper,
+Of nine analytes, four are usable as reported — pH, sulfate, copper,
 turbidity — one is usable as a non-detect (chlorine), one is censored at the
-top of its scale (hardness), and three cannot be used: nitrite and ammonium
-were measured on methods built for concentrations an order of magnitude or two
-above what springs contain, and iron has no recorded method at all.
+top of its scale (hardness), and three cannot be used: nitrite and ammonium,
+and iron for want of a recorded method.
 
-Nothing was wrong with the analyst's work in the three usable cases, and
-nothing in the numbers themselves revealed the three bad ones. What revealed
-them was asking which method produced each column.
+The three failures are not execution errors. They are the consequence of
+which test was selected, a decision taken before a sample is touched and
+constrained by what the laboratory holds: it has no low-range nitrite or
+ammonium test, so there was nothing else to run. Careful work on an
+unsuitable range still yields nothing, which is exactly why the method
+question had to be asked — and nothing in the numbers themselves would ever
+have raised it.
 
 ---
 
