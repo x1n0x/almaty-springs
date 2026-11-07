@@ -7,7 +7,9 @@ their discharge and water quality vary through the year, and how accessible they
 are to residents.
 
 **[Interactive map of the inventory](https://x1n0x.github.io/almaty-springs/reports/map.html)**
-— six visited springs against 262 features from OpenStreetMap.
+— six visited springs against 262 features from OpenStreetMap. Each visited
+site carries its full chemistry, and says which analytes produced no usable
+result and why.
 
 **Scope.** This repository is the complete record of one field campaign:
 six springs located and sampled on 25 October 2026, with laboratory analysis
@@ -130,11 +132,10 @@ in spatial results only with the exclusion stated.
 
 ```
 data/
-  raw/                  Unmodified source extracts (gitignored)
-  field/                Primary field records -- tracked, not reproducible
-  interim/              Cleaned, not yet joined
-  processed/            Analysis-ready tables (gitignored)
-  springs_template.csv  Empty template defining the canonical schema
+  raw/                  Regenerated source extracts (gitignored)
+  field/                Primary records -- tracked, not reproducible
+  springs_template.csv  Empty template defining the spring schema
+  lab_results_template.csv  Empty template defining the laboratory schema
   README.md             Data dictionary and collection protocol
 
 src/
@@ -151,12 +152,6 @@ src/
 tests/
   test_exif_gps.py      EXIF parsing, both byte orders, missing-GPS cases
 
-notebooks/
-  01_osm_inventory.ipynb        Extract, deduplicate, map the OSM seed layer
-  02_spatial_structure.ipynb    RQ1 - elevation and distance-to-front analysis
-  03_field_measurements.ipynb   RQ2, RQ3 - temperature and discharge
-  04_accessibility.ipynb        RQ5 - walking-distance coverage
-
 docs/
   methodology.md        Analysis plan and statistical approach
   field_protocol.md     How measurements are taken, instrument by instrument
@@ -164,7 +159,6 @@ docs/
 
 reports/
   map.html              Interactive map of the inventory
-  figures/              Generated figures
 ```
 
 ---
@@ -192,6 +186,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+That installs `requests` and nothing else. Every script here runs on the
+standard library apart from HTTP — no pandas, no geopandas, no notebook
+server. Only `src/enrich_elevation.py --backend local` needs more, and it
+says so if you use it.
 
 On Windows, activate with `.venv\Scripts\activate` instead.
 
@@ -297,7 +296,8 @@ elevations are from the DEM.
 Data: [`data/field/springs_2026-10-25.csv`](data/field/springs_2026-10-25.csv).
 Map: **[open the interactive map](https://x1n0x.github.io/almaty-springs/reports/map.html)**
 (source: [`reports/map.html`](reports/map.html), rebuild with
-`python src/make_map.py`).
+`python src/make_map.py`). Popups carry the chemistry, with censored values
+marked `≥` and unusable analytes named rather than silently dropped.
 
 **Four of the six are already in OpenStreetMap.** ALA-0003 matches a named node
 (Күміс Тау) to within 8 m, which is an independent check on the photo-derived
@@ -692,13 +692,16 @@ as a recommendation to drink from any spring.
 
 ## 10. Technologies
 
-- Python 3.11
-- pandas, numpy — tabular processing
-- geopandas, shapely, pyproj — geospatial operations
-- rasterio — DEM sampling
-- requests — Overpass API access
-- scikit-learn, scipy, statsmodels — clustering and hypothesis testing
-- matplotlib, folium — static and interactive mapping
+- Python 3.11, standard library only, except:
+- `requests` — Overpass, OpenTopoData and the ORCID public API
+- `rasterio` — optional, for sampling a local DEM instead of the API
+
+EXIF parsing, the binomial test behind the replicate-order check, the
+geodesic distances and the Leaflet map are all written out rather than
+imported. The project plan called for pandas, geopandas, scikit-learn and a
+notebook stack; none of it turned out to be needed for six springs and 262
+points, and a dependency that is not needed is one more thing between a
+reader and a reproduction.
 
 ---
 

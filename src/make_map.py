@@ -27,6 +27,29 @@ from pathlib import Path
 LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
 LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
 
+# Analytes shown in a site's popup, in order, with the unit to print.
+CHEMISTRY = [
+    ("ph", "pH", ""),
+    ("hardness", "Hardness", " mg/L CaCO3"),
+    ("sulfate", "Sulfate", " mg/L"),
+    ("copper", "Copper", " mg/L"),
+    ("turbidity", "Turbidity", " NTU"),
+    ("chlorine", "Chlorine", " mg/L"),
+]
+
+# Analytes deliberately not shown as values. Each was produced by a method
+# that cannot support one -- see the laboratory sections of the README. The
+# map says so rather than omitting them, because a reader who knows nitrite
+# was measured should be told why no number appears.
+UNUSABLE = {
+    "nitrite": "measured on a high-range method",
+    "ammonium": "measured on a 2-47 mg/L test",
+    "iron": "no method recorded",
+}
+
+# Readings from a second method on a single sample are not replicates.
+SECONDARY_METHODS = {"hach_cuvette_test_barcoded"}
+
 SOURCE_COLOURS = {
     "spring": "#2a7fb8",
     "captured_spring": "#4aa3c7",
@@ -36,8 +59,57 @@ SOURCE_COLOURS = {
 
 
 def load(path: Path) -> list[dict]:
+    """Rows that carry a position. For tables that do not, use read_rows."""
+    return [r for r in read_rows(path) if r.get("lat") and r.get("lon")]
+
+
+def read_rows(path: Path) -> list[dict]:
     with path.open(newline="", encoding="utf-8") as handle:
-        return [r for r in csv.DictReader(handle) if r.get("lat") and r.get("lon")]
+        return list(csv.DictReader(handle))
+
+
+def load_chemistry(paths: list[Path]) -> dict[str, dict[str, object]]:
+    """Mean of the replicates per spring and analyte, plus the unusable flags."""
+    gathered: dict[str, dict[str, list[float]]] = {}
+    censored: set[tuple[str, str]] = set()
+    nondetect: dict[tuple[str, str], int] = {}
+    counts: dict[tuple[str, str], int] = {}
+
+    for path in paths:
+        for row in read_rows(path):
+            if row.get("method") in SECONDARY_METHODS:
+                continue
+            spring, analyte = row.get("spring_id", ""), row.get("analyte", "")
+            try:
+                value = float(row["value"])
+            except (KeyError, ValueError):
+                continue
+            gathered.setdefault(spring, {}).setdefault(analyte, []).append(value)
+            key = (spring, analyte)
+            counts[key] = counts.get(key, 0) + 1
+            if row.get("below_lod") == "true":
+                nondetect[key] = nondetect.get(key, 0) + 1
+            if "TOP OF SCALE" in (row.get("notes") or ""):
+                censored.add(key)
+
+    out: dict[str, dict[str, object]] = {}
+    for spring, analytes in gathered.items():
+        entry: dict[str, object] = {}
+        for analyte, values in analytes.items():
+            if analyte in UNUSABLE:
+                entry[analyte] = {"unusable": UNUSABLE[analyte]}
+                continue
+            key = (spring, analyte)
+            mean = sum(values) / len(values)
+            entry[analyte] = {
+                "mean": round(mean, 3),
+                "censored": key in censored,
+                # Every reading below the limit means the analyte was simply
+                # not detected, which is a result and is shown as such.
+                "nondetect": nondetect.get(key, 0) == counts.get(key, 0),
+            }
+        out[spring] = entry
+    return out
 
 
 def notes_dict(row: dict) -> dict[str, str]:
@@ -48,9 +120,12 @@ def notes_dict(row: dict) -> dict[str, str]:
     )
 
 
-def to_feature(row: dict, kind: str) -> dict:
+def to_feature(row: dict, kind: str, chemistry: dict | None = None) -> dict:
     notes = notes_dict(row)
     return {
+        "chem": (chemistry or {}).get(row.get("spring_id", ""), {}),
+        "water_temp": row.get("water_temp_c") or "",
+        "air_temp": row.get("air_temp_c") or "",
         "id": row.get("spring_id") or "",
         "name": row.get("name_local") or "",
         "lat": float(row["lat"]),
@@ -146,6 +221,12 @@ TEMPLATE = """<!doctype html>
   .leaflet-popup-content {{ font-size: 13px; }}
   .leaflet-popup-content b {{ font-size: 13.5px; }}
   .leaflet-popup-content code {{ font-size: 12px; }}
+  .leaflet-popup-content table.chem {{
+    margin: 7px 0 2px; border-collapse: collapse; font-size: 12.5px;
+  }}
+  .chem td {{ padding: 1px 0; }}
+  .chem td:first-child {{ padding-right: 12px; color: var(--muted); }}
+  .chem .muted {{ color: var(--muted); font-style: italic; }}
   @media (max-width: 600px) {{ .panel {{ max-width: calc(100% - 40px); }} }}
 </style>
 </head>
@@ -166,6 +247,7 @@ TEMPLATE = """<!doctype html>
 const FIELD = {field_json};
 const OSM = {osm_json};
 const COLOURS = {colours_json};
+const CHEMISTRY = {chemistry_json};
 
 const map = L.map('map', {{ scrollWheelZoom: true }});
 L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
@@ -196,6 +278,8 @@ FIELD.forEach((f, i) => {{
   if (f.name) rows.push('<i>' + esc(f.name) + '</i>');
   rows.push(esc(f.lat.toFixed(5)) + ', ' + esc(f.lon.toFixed(5)));
   if (f.elev) rows.push('Elevation ' + esc(f.elev) + ' m (DEM)');
+  if (f.water_temp) rows.push('Water ' + esc(f.water_temp) + ' &deg;C, air '
+    + esc(f.air_temp) + ' &deg;C');
   if (f.photos) rows.push(esc(f.photos) + ' photographs');
   if (f.measured) rows.push('Visited ' + esc(f.measured));
   if (f.folder) rows.push('Folder <code>' + esc(f.folder) + '</code>');
@@ -203,6 +287,25 @@ FIELD.forEach((f, i) => {{
     ? 'In OSM: <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/' +
       esc(f.osm) + '">' + esc(f.osm) + '</a>'
     : '<b>Not mapped in OSM</b>');
+
+  const chem = [];
+  for (const [key, label, unit] of CHEMISTRY) {{
+    const c = f.chem[key];
+    if (!c) continue;
+    let text;
+    if (c.nondetect) text = 'not detected';
+    else text = (c.censored ? '&ge;' : '') + c.mean + unit;
+    chem.push('<tr><td>' + esc(label) + '</td><td><b>' + text + '</b></td></tr>');
+  }}
+  for (const key of Object.keys(f.chem)) {{
+    const c = f.chem[key];
+    if (!c || !c.unusable) continue;
+    chem.push('<tr><td>' + esc(key) + '</td><td class="muted">no result &mdash; '
+      + esc(c.unusable) + '</td></tr>');
+  }}
+  if (chem.length) {{
+    rows.push('<table class="chem">' + chem.join('') + '</table>');
+  }}
 
   L.marker([f.lat, f.lon], {{
     icon: L.divIcon({{ className: '', iconSize: [24, 24], iconAnchor: [12, 12],
@@ -218,7 +321,21 @@ L.control.layers(null, {{
 }}, {{ collapsed: false, position: 'topright' }}).addTo(map);
 
 const all = FIELD.concat(OSM).map(f => [f.lat, f.lon]);
-map.fitBounds(FIELD.length ? FIELD.map(f => [f.lat, f.lon]) : all, {{ padding: [60, 60] }});
+const bounds = FIELD.length ? FIELD.map(f => [f.lat, f.lon]) : all;
+
+// Fitting bounds against a container that has not been laid out yet leaves
+// the map centred on nothing: Leaflet measures zero and zooms accordingly.
+// That happens whenever the page starts hidden -- in a tab opened in the
+// background, in an iframe, in a pane that is sized after load. Re-measure
+// once the window has settled, and again whenever it changes size.
+function fitToSites() {{
+  map.invalidateSize();
+  map.fitBounds(bounds, {{ padding: [60, 60] }});
+}}
+fitToSites();
+window.addEventListener('load', fitToSites);
+// On resize only re-measure: refitting would undo the reader's own panning.
+window.addEventListener('resize', () => map.invalidateSize());
 </script>
 </body>
 </html>
@@ -240,7 +357,7 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=Path("reports/map.html"))
     args = parser.parse_args()
 
-    field_paths = args.field or sorted(Path("data/field").glob("*.csv"))
+    field_paths = args.field or sorted(Path("data/field").glob("springs_*.csv"))
     if not field_paths:
         print("No field CSV found in data/field/.", file=sys.stderr)
         return 1
@@ -260,7 +377,10 @@ def main() -> int:
             print(f"No OSM extract at {args.osm} -- drawing field sites only.")
             print("Build it with: python src/fetch_osm_springs.py")
 
-    field = [to_feature(r, "field") for r in field_rows]
+    lab_paths = sorted(Path("data/field").glob("lab_results_*.csv"))
+    chemistry = load_chemistry(lab_paths) if lab_paths else {}
+
+    field = [to_feature(r, "field", chemistry) for r in field_rows]
     osm = [to_feature(r, "osm") for r in osm_rows]
     field.sort(key=lambda f: f["id"])
 
@@ -282,6 +402,7 @@ def main() -> int:
         field_json=json.dumps(field, ensure_ascii=False),
         osm_json=json.dumps(osm, ensure_ascii=False),
         colours_json=json.dumps(SOURCE_COLOURS),
+        chemistry_json=json.dumps(CHEMISTRY, ensure_ascii=False),
     )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -1,14 +1,8 @@
 # Data layers are reproducible from src/ and are not tracked.
 data/raw/*
-data/interim/*
-data/processed/*
 !data/raw/.gitkeep
-!data/interim/.gitkeep
-!data/processed/.gitkeep
 
-# Generated figures
-reports/figures/*
-!reports/figures/.gitkeep
+# data/field/ is NOT ignored: those records cannot be regenerated.
 
 # Large geospatial inputs
 *.tif

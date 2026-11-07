@@ -1,0 +1,8 @@
+# Normalise line endings. Development happens on Windows, the data and the
+# scripts are read everywhere; without this every commit from a Windows
+# checkout rewrites whole files as CRLF.
+* text=auto eol=lf
+
+# Keep the published map byte-stable for diffing.
+*.html text eol=lf
+*.csv  text eol=lf
