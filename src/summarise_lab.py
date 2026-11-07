@@ -53,7 +53,7 @@ def binomial_tail(k: int, n: int, p: float) -> float:
 # per-sample statistics: one reading from a different method is not a replicate
 # and would distort both the mean and the spread. Check 3 compares them
 # separately, which is the only place the comparison is meaningful.
-SECONDARY_METHODS = {"turbidimetric_BaCl2_cuvette"}
+SECONDARY_METHODS = {"hach_cuvette_test_barcoded"}
 
 
 def grouped(rows: list[dict], exclude: set[str] = SECONDARY_METHODS) -> dict:
@@ -180,8 +180,8 @@ def check_method_disagreement(rows: list[dict]) -> None:
         for method, values in sorted(methods.items()):
             means[method] = statistics.mean(values)
             print(f"     {method:16} {means[method]:.2f}  (n={len(values)})")
-        routine = means.get("turbidimetric_BaCl2_powder")
-        reference = means.get("turbidimetric_BaCl2_cuvette")
+        routine = means.get("hach_dr3900_prog680_SulfaVer4")
+        reference = means.get("hach_cuvette_test_barcoded")
         if routine and reference:
             diff = reference - routine
             print(f"     difference: {diff:+.2f} ({diff / reference * 100:+.1f}% "
@@ -202,7 +202,80 @@ def check_method_disagreement(rows: list[dict]) -> None:
         print("  No analyte was measured by more than one method.")
 
 
-def check_guidelines(groups: dict) -> None:
+# Working range and smallest resolvable step for each method, from the
+# manufacturer's published procedure. `step` is the concentration change
+# corresponding to 0.010 absorbance where Hach states one; None where it is
+# not published or does not apply.
+METHOD_SPECS = {
+    "hach_dr3900_prog373_NitriVer2_HR": (0, 250, 1.4, "nitrite HIGH range, NitriVer 2"),
+    "hach_dr3900_prog680_SulfaVer4": (2, 70, None, "sulfate, SulfaVer 4"),
+    "hach_cuvette_test_barcoded": (40, 150, None, "sulfate, barcoded cuvette test"),
+    "hach_dr3900_prog88_DPD_530nm": (0, 10, None, "chlorine free+total, DPD"),
+}
+
+
+def check_method_fit(rows: list[dict]) -> set[str]:
+    """Were the samples inside the part of the range the method can resolve?
+
+    A method is not simply right or wrong for a sample; it has a span, and
+    readings crowded against the bottom of that span are noise wearing the
+    costume of data. This check exists because the first batch contained
+    exactly that, and nothing else in the pipeline would have caught it.
+    """
+    print(chr(10) + "=" * 72)
+    print("CHECK 5  Method range against what was measured")
+    print("=" * 72)
+
+    by_method: dict[str, list[float]] = defaultdict(list)
+    analyte_of: dict[str, str] = {}
+    for row in rows:
+        try:
+            by_method[row["method"]].append(float(row["value"]))
+            analyte_of[row["method"]] = row["analyte"]
+        except (KeyError, ValueError):
+            continue
+    unusable: set[str] = set()
+
+    unknown = [m for m in by_method if m == "UNKNOWN"]
+    for method in sorted(by_method):
+        values = by_method[method]
+        if method == "UNKNOWN":
+            print(f"  UNKNOWN method: {len(values)} readings")
+            print("     No instrument or procedure recorded. The readings cannot")
+            print("     be assessed at all, and must not be used until the")
+            print("     laboratory says how they were produced.")
+            unusable.add(analyte_of[method])
+            continue
+        if method not in METHOD_SPECS:
+            continue
+        low, high, step, label = METHOD_SPECS[method]
+        lo, hi = min(values), max(values)
+        position = hi / high * 100
+        print(f"  {label}")
+        print(f"     method range {low}-{high}; samples {lo:g}-{hi:g} "
+              f"(top sample at {position:.0f}% of range)")
+        if step:
+            worst = step / lo * 100 if lo else float("inf")
+            best = step / hi * 100 if hi else float("inf")
+            print(f"     smallest resolvable step {step}: "
+                  f"{best:.0f}-{worst:.0f}% of the readings themselves")
+            if best > 10:
+                unusable.add(analyte_of[method])
+                print()
+                print("     -> WRONG RANGE. One step of this method is a large")
+                print("        fraction of every value it returned here. These")
+                print("        numbers do not distinguish the samples from each")
+                print("        other or from zero, and no threshold comparison")
+                print("        based on them can stand. A low-range method is")
+                print("        required and the measurement must be repeated.")
+        elif position < 10:
+            print("     -> Readings sit in the bottom tenth of the range;")
+            print("        treat small differences between them with care.")
+        print()
+    return unusable
+
+
+def check_guidelines(groups: dict, unusable: set[str]) -> None:
     print("\n" + "=" * 72)
     print("CHECK 4  Comparison with drinking-water guideline values")
     print("=" * 72)
@@ -213,6 +286,14 @@ def check_guidelines(groups: dict) -> None:
     for analyte, (limit, unit, source) in GUIDELINES.items():
         keys = [k for k in groups if k[0] == analyte]
         if not keys:
+            continue
+        if analyte in unusable:
+            print(f"  {analyte} -- COMPARISON WITHDRAWN")
+            print("     Check 5 found the measurement cannot support a threshold")
+            print("     comparison. Printing the numbers beside a guideline value")
+            print("     would lend them an authority the method does not give")
+            print("     them, so they are not printed here.")
+            print()
             continue
         print(f"  {analyte} -- {limit} {unit} ({source})")
         for key in sorted(keys, key=lambda k: k[1]):
@@ -283,7 +364,8 @@ def main() -> int:
     check_replicate_order(groups)
     check_zero_dispersion(groups)
     check_method_disagreement(rows)
-    check_guidelines(groups)
+    unusable = check_method_fit(rows)
+    check_guidelines(groups, unusable)
     return 0
 
 

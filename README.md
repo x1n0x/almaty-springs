@@ -244,7 +244,7 @@ python src/validate.py data/raw/osm_springs.csv
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
 | Laboratory analysis | First batch received 2026-11-01, six analytes |
 | RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | First batch analysed; needs a repeat round |
+| RQ2-RQ4 hydrochemistry | Sulfate and pH usable; nitrite and iron need re-analysis |
 | RQ5 accessibility | Not started |
 
 ### First extract
@@ -335,7 +335,7 @@ python src/summarise_lab.py data/field/lab_results_2026-10-25.csv
 
 Replicate means:
 
-| Spring | pH | Nitrite mg/L | Sulfate mg/L | Hardness mg/L CaCO3 | Iron mg/L | Water degC | Air degC |
+| Spring | pH | Nitrite mg/L* | Sulfate mg/L | Hardness mg/L CaCO3 | Iron mg/L* | Water degC | Air degC |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | ALA-0001 | 7.25 | 3.67 | 9 | >=425 | 0.030 | 8.0 | 5 |
 | ALA-0002 | 7.94 | 3.67 | 2 | >=425 | 0.013 | 2.0 | 4 |
@@ -343,6 +343,12 @@ Replicate means:
 | ALA-0004 | 8.15 | 3.00 | 54 (65.7) | 120 | 0.103 | 12.5 | -1 |
 | ALA-0005 | 7.85 | 4.33 | 4 | 250 | 0.007 | 1.5 | -3 |
 | ALA-0006 | 7.64 | 6.33 | 9 | >=425 | 0.010 | 5.0 | -3 |
+
+\* **Nitrite and iron are not usable results** — nitrite was measured on a
+high-range method unsuited to these concentrations, and iron has no recorded
+method at all. Both are explained below and both are excluded from every
+comparison. They are left in the table because deleting a measurement is not
+the same as reporting that it cannot be used.
 
 Chlorine was below detection everywhere except a single 0.1 mg/L first reading
 at ALA-0006, which the replicate-order bias below makes hard to take at face
@@ -413,9 +419,11 @@ calibration. Checking those five needs a different reference method.
 #### ALA-0004 is different from the other five
 
 It has the highest pH (8.15), the highest sulfate (54–65.7 against 2–9
-elsewhere), the highest iron (0.103 against 0.007–0.030), by far the lowest
-hardness (120 mg/L against ≥425 at four of the other five), and the warmest
-water by a wide margin: 12.5 °C while the air was -1 °C.
+elsewhere), by far the lowest hardness (120 mg/L against ≥425 at four of the
+other five), and the warmest water by a wide margin: 12.5 °C while the air was
+-1 °C. Its iron reading is also the highest, but iron has no recorded method
+and is therefore left out of the argument below rather than used to support
+it.
 
 The thermal part survives the obvious confound. Air temperature fell through
 the afternoon, so a water-minus-air difference is not comparable between sites
@@ -431,13 +439,12 @@ here as a reason to suspect a bad measurement. With the units settled, the
 pattern is coherent instead.
 
 The other springs are carbonate waters: very hard, almost no sulfate. ALA-0004
-has roughly a quarter of their hardness, five times the sulfate, more iron,
-higher pH and warmer water. Sulfate from dissolving gypsum would *raise*
+has roughly a quarter of their hardness, five times the sulfate, higher pH and
+warmer water. Sulfate from dissolving gypsum would *raise*
 hardness, since it arrives paired with calcium. Sulfate rising while calcium
 hardness falls means the two are not arriving together, and that combination —
-low hardness, high pH, more iron, warmer, longer-travelled water — is the
-classic signature of calcium being exchanged for sodium along a deeper flow
-path.
+low hardness, high pH, warmer, longer-travelled water — is the classic
+signature of calcium being exchanged for sodium along a deeper flow path.
 
 **This is a hypothesis, not a result, and it is written down because it is
 testable.** It predicts high sodium and low calcium at ALA-0004 relative to the
@@ -447,53 +454,82 @@ explanations — a different aquifer, a leaking pipe, a mislabelled sample —
 remain open, and one visit cannot separate them. ALA-0004 is also one of the
 two springs absent from OpenStreetMap.
 
-#### Nitrite
+#### Nitrite: the comparison is withdrawn
 
-Every sample sits at or above the WHO provisional guideline value for nitrite
-of 3 mg/L, ranging from 3.0 to 6.3 mg/L.
+An earlier version of this section reported that all six springs measured at
+or above the WHO provisional guideline value of 3 mg/L. **That claim is
+withdrawn.** It did not survive learning which programme produced the numbers.
 
-The laboratory has confirmed these are nitrite ion (NO2-), not nitrite as
-nitrogen, so they are directly comparable with the guideline, which is stated
-for the ion. That was the one answer that could have moved the figures by a
-factor of 3.28, and it did not: the comparison stands as written.
+Nitrite was measured on **Hach programme 373**, the NitriVer 2 ferrous-sulfate
+method. That is the *high-range* nitrite test: it spans 0–250 mg/L, and its
+published sensitivity is 1.4 mg/L NO2- per 0.010 absorbance. The samples read
+2–7 mg/L — the bottom 3% of the span, where a single resolvable step is 20–70%
+of the value being reported, and roughly half the guideline value itself.
 
-Three cautions remain, and they are not small. The first-reading bias
-documented above inflates every one of these means, and the bias has not been
-traced or quantified. Nitrite in groundwater is usually transient — it often
-marks recent contamination rather than a stable condition — so one visit
-cannot establish a persistent level, and a repeat sampling round is the next
-thing this project needs. And no microbiological testing was performed at all,
-so the contamination that actually makes spring water dangerous would not
-appear anywhere in this table.
+So the reported integers are one to five steps above zero on an instrument
+scaled to two hundred and fifty. They do not separate the springs from each
+other, and they do not establish which side of 3 mg/L any of them is on. The
+correct response is not a caveat but a withdrawal: there is no nitrite result
+here yet.
 
-What can be said is narrow and worth saying: on one day in October 2026, all
-six springs measured at or above the WHO provisional guideline value for
-nitrite, and that is a reason to sample them again rather than a verdict about
-them.
+It also dissolves a finding. The first-reading-highest bias was 1–2 mg/L on
+this analyte, which is one sensitivity step — so for nitrite that pattern may
+be the method idling at its floor rather than a procedural fault. The bias
+remains real for iron and pH, where the readings are not range-limited in the
+same way.
+
+**What is needed:** the low-range nitrite method, diazotization with
+NitriVer 3 (Hach programme 371), which works in the 0.002–0.300 mg/L NO2-N
+band that natural groundwater actually occupies. This is a re-analysis
+request, not a paperwork one.
+
+#### Iron has no recorded method
+
+The laboratory states the DR 3900 has no iron programme. Six iron results were
+nevertheless reported, including the 0.103 mg/L at ALA-0004 that contributes
+to that spring's distinct profile. Until it is known what produced those
+numbers, the iron column is flagged unusable and excluded from the guideline
+comparison.
+
+The readings may be perfectly good — a strip, another instrument, a borrowed
+kit. The problem is not that they are wrong but that nothing records how they
+were obtained, and a measurement that cannot say where it came from cannot be
+defended later.
+
+#### Methods, as finally established
+
+| Analyte | Instrument and method | Range | Usable here |
+|---|---|---|---|
+| pH | Metrohm 913 pH Meter, Pt1000 | — | yes; calibration date unknown |
+| Chlorine | Hach DR 3900, programme 88, DPD, 530 nm | 0–10 mg/L | yes, all non-detect |
+| Nitrite | Hach DR 3900, programme 373, NitriVer 2 | 0–250 mg/L | **no — wrong range** |
+| Sulfate | Hach DR 3900, programme 680, SulfaVer 4 | 2–70 mg/L | yes |
+| Sulfate (ALA-0004 only) | Hach barcoded cuvette test | 40–150 mg/L | yes |
+| Hardness | Total-hardness test strip | 6 levels to 425 mg/L | censored at the top |
+| Iron | **unrecorded** | — | **no — provenance unknown** |
+
+`src/summarise_lab.py` now checks this automatically: check 5 compares each
+method's published span and resolution against the values it actually
+returned, and any analyte it finds unusable has its guideline comparison
+withdrawn rather than printed. Nothing else in the pipeline would have caught
+the nitrite problem — the replicates were consistent, the units were right,
+and the numbers looked entirely reasonable.
 
 #### Open questions with the laboratory
 
-All six questions put to the laboratory have been answered, and the answers
-are recorded beside the questions at the end of
-[`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt):
-hardness units, nitrite species, chlorine units, the meaning of a reported
-zero, the two sulfate methods, and the analyst and analysis date.
+Ten questions have been answered across three rounds and are recorded with the
+answers at the end of
+[`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
+Asking for programme numbers is what surfaced the nitrite range problem; none
+of the earlier rounds would have.
 
-Photographs of the bench then confirmed the instrument as a Hach Lange DR 3900
-and showed the chlorine programme and the analysis timestamp on screen, which
-closed the question of method designations and corroborated the analysis date
-independently of the analyst's report.
+Outstanding:
 
-Three things are still missing, and each limits a specific claim rather than
-the batch as a whole:
-
-- **Numeric detection limits.** Non-detects carry the flag but no threshold,
-  so they can be counted but not bounded.
-- **A sulfate method reaching below about 40 mg/L**, without which the five
-  samples at 2–9 mg/L have no independent check.
-- **Reagent lot numbers and expiry dates** for the pillows actually used.
-  Nothing suggests a problem; it is simply part of a record that should be
-  able to explain itself later.
+- **How iron was measured.** Blocks the iron column entirely.
+- **A low-range nitrite re-analysis** (programme 371, NitriVer 3). A
+  re-measurement, not a document.
+- **pH electrode calibration date** for the Metrohm 913.
+- **Reagent lot numbers and expiry dates.**
 
 ---
 

@@ -42,25 +42,25 @@ SAMPLED_AT = {
     6: "2026-10-25T16:23:41+05:00",
 }
 
-# (header pattern as it appears in the report, analyte, unit, note)
+# (header pattern as it appears in the report, analyte, unit, method, note)
 #
 # The patterns are matched against the report's own Russian headings rather
 # than against English analyte names -- the heading for hardness is Russian
 # only, and keying on "hardness" silently produced zero rows.
 #
-# `unit` of "unknown" is deliberate and must not be guessed: see the open
-# questions at the end of the raw file.
 SECTIONS = [
-    # Hach program 88 covers free AND total chlorine; the report did not say
-    # which was measured, so the analyte is not narrowed to one of them.
-    (r"Cl2", "chlorine", "mg/L", "Hach program 88, free+total, 530 nm; "
-                                 "which of the two was measured is unrecorded"),
-    (r"на\s+pH", "ph", "pH", ""),
-    (r"NO2", "nitrite", "mg/L", "confirmed by the lab as NO2- (the ion), not NO2-N"),
-    (r"SO4\s*\(2-\)", "sulfate", "mg/L", ""),  # method set below
-    (r"Fe", "iron", "mg/L", ""),
+    # (header pattern, analyte, unit, method, note)
+    (r"Cl2", "chlorine", "mg/L", "hach_dr3900_prog88_DPD_530nm",
+     "programme 88 covers free AND total chlorine; which was measured is unrecorded"),
+    (r"на\s+pH", "ph", "pH", "metrohm_913_ph_meter",
+     "Metrohm 913 with Pt1000; calibration date not supplied"),
+    (r"NO2", "nitrite", "mg/L", "hach_dr3900_prog373_NitriVer2_HR",
+     "HIGH-RANGE method (to 250 mg/L, sensitivity 1.4 mg/L) used on 2-7 mg/L samples"),
+    (r"SO4\s*\(2-\)", "sulfate", "mg/L", "hach_dr3900_prog680_SulfaVer4", ""),
+    (r"Fe", "iron", "mg/L", "UNKNOWN",
+     "lab states the DR 3900 has no iron programme; method and instrument unknown"),
     # The report spells it "жестокость"; the intended word is "жёсткость".
-    (r"жест[оё]к", "hardness", "mg/L CaCO3", ""),
+    (r"жест[оё]к", "hardness", "mg/L CaCO3", "test_strip_total_hardness", ""),
 ]
 
 # Total-hardness strip, grains per gallon -> mg/L CaCO3, taken from the
@@ -83,8 +83,7 @@ ANALYSED_AT = "2026-10-26"
 # turbidimetric chemistry. The instrument is confirmed as a Hach Lange DR 3900
 # from a photograph, so the Hach designations apply. What the analysis relies
 # on is the working ranges, not the brand.
-SULFATE_POWDER = "turbidimetric_BaCl2_powder"      # approx. 2-70 mg/L
-SULFATE_CUVETTE = "turbidimetric_BaCl2_cuvette"    # approx. 40-150 mg/L
+SULFATE_CUVETTE = "hach_cuvette_test_barcoded"     # approx. 40-150 mg/L
 
 
 def parse_number(token: str) -> float:
@@ -180,13 +179,12 @@ def main() -> int:
     text = args.raw.read_text(encoding="utf-8")
 
     rows: list[dict] = []
-    for header, analyte, unit, note in SECTIONS:
+    for header, analyte, unit, method, note in SECTIONS:
         block = parse_block(text, header)
         if sorted(block) != list(range(1, 7)):
             raise SystemExit(
                 f"{analyte}: expected samples 1-6, parsed {sorted(block)}"
             )
-        method = SULFATE_POWDER if analyte == "sulfate" else ""
         rows += rows_for(analyte, unit, note, block, method=method)
 
     # Sample 4 was re-measured for sulfate by a second method the lab calls a

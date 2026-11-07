@@ -224,3 +224,71 @@ STILL MISSING after this round:
     appears to end "декабря 2019"; copper is not one of this project's
     analytes, so that particular bag is irrelevant here, but it is a reason
     to ask what the lot and expiry were for the reagents that were used.
+
+
+---
+
+ANSWERS, third round, 2026-11-07
+
+10. Programme numbers on the DR 3900, as supplied:
+
+        nitrite   373
+        sulfate   680
+        phosphate LCK 549   (not an analyte of this project)
+        iron      "нету" - no iron programme on the instrument
+
+11. NITRITE WAS MEASURED ON THE WRONG RANGE. This is the most consequential
+    finding of the whole batch and it invalidates a claim this repository
+    was making.
+
+    Hach programme 373 is nitrite HIGH RANGE: the NitriVer 2 ferrous-sulfate
+    method, scaled to 250 mg/L NO2-, with a stated sensitivity of 1.4 mg/L
+    NO2- per 0.010 absorbance and a 95% interval of 191-209 around a 200 mg/L
+    standard.
+
+    The samples read 2-7 mg/L. That is the bottom 3% of the method's span,
+    where one sensitivity step is 1.4 mg/L -- roughly half the WHO guideline
+    value the readings were being compared against. Consequences:
+
+      - The reported integers 2, 3, 4, 5, 6, 7 are about one to five
+        sensitivity steps above zero. They are not resolved measurements.
+      - The "first reading highest" bias of 1-2 mg/L is the same size as one
+        sensitivity step, so that pattern may simply be the method's
+        behaviour at its floor rather than a procedural fault.
+      - Nothing here establishes whether any spring is above or below
+        3 mg/L. The comparison with the WHO provisional guideline must be
+        withdrawn, not merely caveated.
+
+    What is needed: the LOW RANGE nitrite method, diazotization with
+    NitriVer 3 (Hach programme 371), which works in the 0.002-0.300 mg/L
+    NO2-N band appropriate to natural groundwater.
+
+12. Sulfate programme 680 is the SulfaVer 4 powder-pillow method at
+    2-70 mg/L with a 10 mL sample. All six samples (2-54 mg/L) fall inside
+    that range, so sulfate -- unlike nitrite -- was measured on an
+    appropriate scale. This also confirms the earlier deduction: only
+    sample 4 was re-run on the barcoded cuvette test, the other five stayed
+    on the spectrophotometer, exactly as the ranges predicted.
+
+13. IRON HAS NO RECORDED METHOD. The laboratory states there is no iron
+    programme on the DR 3900, yet six iron results were reported. The
+    instrument and method behind the iron column are therefore unknown, and
+    the column cannot be relied on until that is answered. It is marked
+    accordingly rather than deleted: the readings exist and may be perfectly
+    good, but their provenance does not.
+
+14. pH was measured on a Metrohm 913 pH Meter with a Pt1000 temperature
+    sensor, confirmed by photograph -- not on the DR 3900. Calibration date
+    still not supplied.
+
+15. Hardness by test strip, confirmed by photograph: the six strips are
+    visible beside the six sample tubes. Recorded separately from the
+    instrumental methods.
+
+STILL MISSING:
+
+  - How iron was actually measured (see 13).
+  - pH electrode calibration date.
+  - Reagent lot numbers and expiry dates.
+  - A low-range nitrite measurement, which is now a re-analysis request
+    rather than a documentation request.
