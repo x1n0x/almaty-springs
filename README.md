@@ -9,8 +9,13 @@ are to residents.
 **[Interactive map of the inventory](https://x1n0x.github.io/almaty-springs/reports/map.html)**
 — six visited springs against 262 features from OpenStreetMap.
 
-This repository is a research project in progress. Its structure, data contracts,
-and methodology are defined first; results are added as data is collected.
+**Scope.** This repository is the complete record of one field campaign:
+six springs located and sampled on 25 October 2026, with laboratory analysis
+carried out at a university teaching laboratory over the following fortnight.
+It is written as a finished account of what that campaign established and
+what it could not, rather than as a plan for further work. The research
+questions in section 2 were set out before collection and most of them remain
+open; section 8 says exactly which, and why.
 
 ---
 
@@ -229,7 +234,7 @@ python src/validate.py data/raw/osm_springs.csv
 
 ---
 
-## 8. Current Status
+## 8. Status at the close of the campaign
 
 | Component | Status |
 |---|---|
@@ -240,12 +245,13 @@ python src/validate.py data/raw/osm_springs.csv
 | Photo-to-record pipeline | Implemented, 15 tests passing |
 | OSM cross-matching | Implemented |
 | Interactive map | Implemented |
-| Deduplication and identifier assignment | Not started |
 | Field measurement campaign | 6 springs visited and sampled, 2026-10-25 |
 | Laboratory analysis | Two batches, nine analytes, 151 measurements |
-| RQ1 spatial analysis | Not started |
-| RQ2-RQ4 hydrochemistry | 4 of 9 analytes usable; nitrite, ammonium, iron need re-analysis |
-| RQ5 accessibility | Not started |
+| RQ1 spatial structure | Not undertaken: needs an inventory far larger than six |
+| RQ2 thermal signature | Not undertaken: needs 30+ measurements, see methodology |
+| RQ3 seasonality | Not undertaken: needs repeat visits across a melt cycle |
+| RQ4 chemistry and land use | Partially addressed; see the laboratory sections |
+| RQ5 accessibility | Not undertaken |
 
 ### First extract
 
@@ -478,10 +484,11 @@ be the method idling at its floor rather than a procedural fault. The bias
 remains real for iron and pH, where the readings are not range-limited in the
 same way.
 
-**What is needed:** the low-range nitrite method, diazotization with
-NitriVer 3 (Hach programme 371), which works in the 0.002–0.300 mg/L NO2-N
-band that natural groundwater actually occupies. This is a re-analysis
-request, not a paperwork one.
+Resolving it would take the low-range nitrite method — diazotization with
+NitriVer 3, Hach programme 371, working in the 0.002–0.300 mg/L band that
+natural groundwater occupies. The teaching laboratory does not hold it, and
+the samples are too old to re-run in any case. **There is no nitrite result
+for these springs, and this dataset will not produce one.**
 
 #### Iron has no recorded method
 
@@ -518,46 +525,39 @@ withdrawn rather than printed. Nothing else in the pipeline would have caught
 the nitrite problem — the replicates were consistent, the units were right,
 and the numbers looked entirely reasonable.
 
-#### Open questions with the laboratory
+#### What the laboratory record contains, and what it does not
 
-Answers have come in three rounds and are recorded with the questions at the
-end of [`data/field/lab_raw_2026-10-25.txt`](data/field/lab_raw_2026-10-25.txt).
-Asking for programme numbers is what surfaced the range problems; none of the
-earlier rounds would have.
+The analyses were run in a **university teaching laboratory**, on the
+instruments and reagent stock that such a laboratory keeps. That is the single
+most useful fact for reading the three unusable columns. A teaching laboratory
+is equipped for the concentrations its courses work with, which are those of
+treated and waste water; it holds a high-range nitrite test and a 2–47 mg/L
+ammonium cuvette because those are the ones its teaching needs. Natural spring
+water sits one to two orders of magnitude below that. No low-range nitrite or
+ammonium test was on the shelf, so none could be run.
 
-Outstanding:
+Asking which programme produced each column is what made this visible, and it
+is recorded here because it is the kind of thing that is obvious in hindsight
+and invisible at the bench.
 
-- **How iron was measured.** Blocks the iron column entirely.
-- **pH electrode calibration date** for the Metrohm 913.
-- **Reagent lot numbers and expiry dates.**
-- **Whether nitrite programme 373 reports NO2- or NO2-N.** The laboratory said
-  the ion, but the programme title as displayed reads "Нитрит N … 373", and
-  the N may denote nitrogen. It does not affect the current withdrawal, which
-  rests on range, but it must be settled before any future nitrite figure is
-  used.
+What remains unresolved, stated as a permanent property of this dataset rather
+than as pending work:
 
-**Recovering the iron method.** The DR 3900 keeps a measurement log: every
-reading is stored with its programme, result and timestamp. If iron appears in
-the log for 26 October 2026, that settles which programme produced it without
-anyone having to remember. If it does not appear, iron was not measured on
-this instrument, which is itself the answer and points at a strip or a second
-device. Either outcome closes the question; the log is the first place to look.
-
-That log is worth retrieving regardless. Per-reading timestamps would show how
-long elapsed between the three replicates of a set, which is the most direct
-test available of whether the order-of-reading bias is a stabilisation effect.
-
-**Nitrite and ammonium cannot be recovered from the stored samples.** Both
-species are unstable in storage, and the samples were taken on 25 October.
-Re-running them now would measure the storage, not the springs. These two
-analytes need a fresh sampling round, which makes them a task for the next
-field trip rather than for the laboratory.
-
-The laboratory holds no low-range test for either, so the next trip should be
-planned around tests that have to be acquired first: NitriVer 3 powder pillows
-or LCK 341 for nitrite, LCK 304 for ammonium. The same trip is the natural
-occasion to collect the sodium, calcium and magnesium that would test the
-ALA-0004 hypothesis in section 8.
+- **The iron method is unrecorded.** The laboratory has no iron programme on
+  the DR 3900, yet six iron results exist. The instrument's own measurement
+  log would settle it, but the laboratory is not accessible, and the column
+  stays excluded.
+- **Nitrite and ammonium cannot be recovered.** Both species are unstable in
+  storage and the samples date from 25 October. Re-running them later would
+  measure the storage, not the springs. Correcting these two would require a
+  fresh sampling round with tests the laboratory does not hold — not a
+  correction but a new campaign.
+- **pH electrode calibration date** and **reagent lots** were never supplied.
+  Neither affects a conclusion drawn here; both are gaps in the provenance.
+- **Whether programme 373 reports NO2- or NO2-N** was answered as the ion, but
+  the programme title as displayed reads "Нитрит N … 373". Moot while the
+  nitrite result is withdrawn on range grounds, and it would need settling
+  before any future nitrite figure is used.
 
 
 ### Second laboratory batch, received 7 November 2026
@@ -590,8 +590,8 @@ This is the nitrite problem again in a more visible form. There the mismatch
 hid behind plausible small integers; here the instrument printed a negative
 number and refused to pretend. A spring is not wastewater, and a test built
 for 2–47 mg/L of ammonium has nothing to say about water that contains
-roughly none. The appropriate test is a low-range one — LCK 304 covers
-0.015–2.0 mg/L NH4-N.
+roughly none. The low-range equivalent, LCK 304 at 0.015–2.0 mg/L, is not
+stocked by a teaching laboratory, so this column stands as it is.
 
 #### Copper and turbidity
 
@@ -663,12 +663,16 @@ over-represented in every available source. Remote springs are systematically
 missing, and no amount of cleaning fixes that. Spatial results are therefore
 statements about *documented* springs, not about all springs.
 
-**Sample size.** Six springs have been sampled so far. That is enough for a
-careful description of each one and for comparison against drinking-water
-norms, and it is not enough for the clustering and distribution tests described
-in `docs/methodology.md`. Those sections are written for a larger inventory and
-stay unanswered until it exists; nothing in this repository will report a
-statistical result computed on six points.
+**Sample size, and where this stops.** Six springs were sampled, in one
+campaign, on one day. That supports a careful description of each site and
+nothing more. The clustering and distribution tests in `docs/methodology.md`
+were written for a larger inventory; they are not run here, and no statistical
+result in this repository is computed on six points.
+
+The methodology document is left as written rather than trimmed to what was
+achieved. It records what the project set out to do, which is part of an
+honest account of what it did — and if the work resumes, the plan is already
+there.
 
 **Two tiers of measurement.** Where samples go to a laboratory, results are
 laboratory-grade and are labelled with the facility and method. Where only
@@ -698,7 +702,37 @@ as a recommendation to drink from any spring.
 
 ---
 
-## 11. Credits
+## 11. What this campaign established
+
+Stated plainly, because the sections above spend many words on what the data
+cannot support and a reader deserves the other half in one place.
+
+**Six springs are located to GPS accuracy**, with elevations from a DEM, in an
+open dataset that did not exist before. Four of the six were already in
+OpenStreetMap and now carry their node identifiers; **two are not mapped
+anywhere**, the nearest recorded feature being 1.4 km and 2.9 km away.
+
+**Four analytes are reliable**: pH 7.25–8.15, sulfate 2–54 mg/L, copper
+0.027–0.107 mg/L, turbidity 0.06–0.98 NTU. Chlorine is a clean set of
+non-detects. All sit far below the drinking-water guideline values they can
+be compared with. The water is hard — at least 425 mg/L CaCO3 at four sites,
+beyond what the strip can resolve.
+
+**ALA-0004 is chemically and thermally distinct** from the other five, on four
+independent measurements, in a pattern consistent with a deeper flow path. The
+hypothesis is stated with the measurement that would test it.
+
+**The method audit is itself a result.** Three of nine columns were produced
+by tests built for concentrations one to two orders of magnitude above spring
+water, and that was invisible in the numbers — the replicates were tight, the
+units were right, the values looked reasonable. It surfaced only when each
+column was traced to the programme that produced it. Any reader of this
+dataset gets that audit along with the data, which is more than most published
+water chemistry comes with.
+
+---
+
+## 12. Credits
 
 This project is the work of more than one person, and the laboratory half of it
 does not appear in the commit history. It is recorded here instead.
@@ -707,7 +741,8 @@ does not appear in the commit history. It is recorded here instead.
 survey, data engineering, analysis, repository.
 
 **Elizaveta Katkova** (Каткова Елизавета Игоревна) — Energy and Environmental
-Engineering, Kazakh-German University (DKU), Almaty. Laboratory analysis,
+Engineering, Kazakh-German University (DKU), Almaty. Analyses carried out in
+the university's teaching laboratory. Laboratory analysis,
 sample preparation and handling, hydrochemical interpretation. Every
 water-chemistry value published in this repository comes from this work; the
 first batch was analysed on 26 October 2026, the day after sampling.
@@ -723,7 +758,7 @@ reflects who typed.
 
 ---
 
-## 12. Contributing
+## 13. Contributing
 
 Spring locations, corrections, and measurements are welcome. Open an issue with
 coordinates and, if possible, a photograph of the outlet. Please do not submit
@@ -731,7 +766,7 @@ locations on private land without the owner's permission.
 
 ---
 
-## 13. Licence
+## 14. Licence
 
 Code is released under the MIT Licence — see [`LICENSE`](LICENSE).
 
