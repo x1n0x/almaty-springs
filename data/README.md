@@ -185,6 +185,9 @@ the Open Database Licence. Any published derivative must carry the ODbL
 attribution — see `docs/sources.md`.
 
 Field measurements are original to this project and are released under CC BY 4.0.
+That covers the tables in `field/`, including the photograph manifest. It does
+not cover the photographs themselves: the images in `reports/photos/` are
+© 2026 Vladislav Karelin, all rights reserved.
 
 Where a processed table joins OSM-derived and field-collected columns, the ODbL
 share-alike obligation applies to the result. `docs/sources.md` records which

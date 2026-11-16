@@ -1236,6 +1236,11 @@ def render_page(results: dict) -> str:
         "UNUSABLE": sentence_list(
             [TITLES[k].lower() for k, v in sorted(status.items()) if v == "unusable"]),
         "ANALYST": esc(sentence_list(results["analysts"])),
+        # The photographs are the one thing here that is not openly licensed.
+        "PHOTO_RIGHTS": (
+            " The photographs are © Vladislav Karelin, all rights reserved."
+            if any(s["shots"] for s in results["springs"]) else ""
+        ),
         "DATE": date,
     }
     page = PAGE
@@ -1493,7 +1498,7 @@ footer p{margin:0}
     <p><b>@@ANALYST@@</b>Laboratory analysis and hydrochemical interpretation, in the teaching
     laboratory of the Kazakh-German University, Almaty.</p>
     <p><b>Open data</b>Data under CC BY 4.0, code under MIT. Map tiles and the regional
-    inventory are from OpenStreetMap contributors.</p>
+    inventory are from OpenStreetMap contributors.@@PHOTO_RIGHTS@@</p>
   </footer>
 </div>
 <div id="tip" role="status"></div>

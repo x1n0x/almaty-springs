@@ -874,3 +874,8 @@ Code is released under the MIT Licence — see [`LICENSE`](LICENSE).
 Data derived from OpenStreetMap remains subject to the Open Database Licence
 (ODbL). Original field measurements collected for this project are released under
 CC BY 4.0. Details in [`docs/sources.md`](docs/sources.md).
+
+**The photographs are not openly licensed.** The images in
+[`reports/photos/`](reports/photos) are © 2026 Vladislav Karelin, all rights
+reserved. Neither the MIT Licence nor CC BY 4.0 extends to them: they may be
+viewed here, and reusing them elsewhere needs permission.

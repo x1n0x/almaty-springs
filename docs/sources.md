@@ -165,6 +165,13 @@ to be averaged away.
 **Licence.** Original to this project, released under CC BY 4.0 with
 attribution to both authors and to DKU as the analysing facility.
 
+**Photographs are the exception.** The field photographs published in
+`reports/photos/` are © 2026 Vladislav Karelin, all rights reserved. They are
+shown in this repository and on its dashboard, and are not released under
+CC BY 4.0, the MIT Licence or any other open licence. Reuse needs the author's
+permission. The manifest that lists them, `data/field/photos_2026-10-25.csv`,
+is data and is CC BY 4.0 like the rest of `data/field/`.
+
 ---
 
 ## 8. Attribution block for publications
@@ -179,6 +186,7 @@ the European Union and ESA.
 Population from WorldPop, CC BY 4.0.
 Field and laboratory measurements: Karelin & Katkova, Almaty Springs
 project, CC BY 4.0.
+Photographs © Vladislav Karelin, all rights reserved.
 ```
 
 Sources not used in a given figure are omitted from its block.

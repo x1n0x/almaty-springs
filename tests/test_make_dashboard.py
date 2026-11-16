@@ -203,6 +203,9 @@ class TestOutputs(unittest.TestCase):
         self.assertEqual([s["id"] for s in data["springs"]],
                          [f"ALA-{n:04d}" for n in range(1, 7)])
 
+    def test_page_says_the_photographs_are_not_openly_licensed(self) -> None:
+        self.assertIn("all rights reserved", self.page)
+
     def test_page_carries_the_safety_caveat(self) -> None:
         self.assertIn("This is not a safety assessment", self.page)
 
