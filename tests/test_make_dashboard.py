@@ -24,10 +24,11 @@ import make_dashboard  # noqa: E402
 
 SPRINGS = ROOT / "data/field/springs_2026-10-25.csv"
 LAB = ROOT / "data/field/lab_results_2026-10-25.csv"
+PHOTOS = ROOT / "data/field/photos_2026-10-25.csv"
 
 
 def results() -> dict:
-    return make_dashboard.build_results(SPRINGS, LAB)
+    return make_dashboard.build_results(SPRINGS, LAB, PHOTOS)
 
 
 class TestResults(unittest.TestCase):
@@ -128,6 +129,47 @@ class TestSuperlatives(unittest.TestCase):
         self.assertNotIn("the clearest water", best["ALA-0004"])
         # 1.5 against 2.0 degrees on single readings is not one either.
         self.assertNotIn("the coldest water", best["ALA-0005"])
+
+
+class TestPhotographs(unittest.TestCase):
+    """Published photographs must exist and must carry no metadata."""
+
+    def test_every_spring_has_photographs_that_exist(self) -> None:
+        for spring in results()["springs"]:
+            self.assertTrue(spring["shots"], f"{spring['id']} has no photograph")
+            for shot in spring["shots"]:
+                self.assertTrue((ROOT / shot["file"]).exists(), shot["file"])
+                self.assertTrue(shot["caption"])
+
+    def test_published_photographs_carry_no_exif(self) -> None:
+        """Position, time and device stay in the data files, not in the JPEGs."""
+        files = sorted((ROOT / "reports/photos").glob("*.jpg"))
+        self.assertTrue(files)
+        for path in files:
+            data = path.read_bytes()
+            self.assertNotIn(b"Exif\x00\x00", data, path.name)
+            # Walk the segments before the scan: no APP1..APP15 at all.
+            pos = 2
+            while pos < len(data) and data[pos] == 0xFF and data[pos + 1] != 0xDA:
+                marker = data[pos + 1]
+                self.assertFalse(0xE1 <= marker <= 0xEF,
+                                 f"{path.name} has an APP{marker - 0xE0} segment")
+                pos += 2 + int.from_bytes(data[pos + 2:pos + 4], "big")
+
+    def test_a_listed_but_missing_photograph_is_fatal(self) -> None:
+        import tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            manifest = Path(folder) / "photos.csv"
+            manifest.write_text(
+                "spring_id,file,source_file,caption\n"
+                "ALA-0001,reports/photos/nope.jpg,x,y\n", encoding="utf-8")
+            with self.assertRaises(SystemExit):
+                make_dashboard.load_photos(manifest)
+
+    def test_sign_is_read_from_the_spring_record(self) -> None:
+        spring = next(s for s in results()["springs"] if s["id"] == "ALA-0004")
+        self.assertEqual(spring["sign"], "Hydrogen sulfide spring")
+        self.assertEqual(spring["sign_elev"], "1435")
 
 
 class TestWording(unittest.TestCase):

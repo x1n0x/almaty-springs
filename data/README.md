@@ -162,6 +162,20 @@ Almaty by Elizaveta Katkova, who is an author of this project. See the credits
 section of the README and `CITATION.cff`. Any publication using these values
 carries that attribution.
 
+### Photographs
+
+`field/photos_<date>.csv` lists the photographs published in `reports/photos/`:
+the spring, the published file, the original it was made from, and a caption.
+The published copies are scaled down and re-encoded from pixels alone, so they
+carry no EXIF block. Position, time and device are recorded in the spring table
+instead, and a test checks that no published JPEG has metadata. The originals
+are not in the repository, and photographs showing people or vehicles were
+left out.
+
+What a sign at a site says is recorded in the spring's `notes` as `sign_kk`,
+`sign_ru` and `sign_en`, with `sign_elev_m` where the sign gives an elevation
+and `sign_src` naming the photograph it was read from.
+
 ---
 
 ## 4. Provenance and licences
