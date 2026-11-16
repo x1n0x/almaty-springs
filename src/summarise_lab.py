@@ -90,6 +90,41 @@ def report_table(groups: dict) -> None:
             )
 
 
+def replicate_order(groups: dict) -> dict:
+    """How often is the first reading of a triplicate the strict maximum?
+
+    Returned as numbers rather than printed, so the report and the dashboard
+    quote the same count instead of each computing its own.
+
+    Triplicates whose three readings are identical are set aside: a readout
+    that cannot vary carries no information about ordering.
+    """
+    analytes: dict[str, dict[str, int]] = {}
+    for analyte in sorted({a for a, _ in groups}):
+        first_max = sets = identical = 0
+        for key in [k for k in groups if k[0] == analyte]:
+            values = [v for _, v in groups[key]]
+            if len(values) < 3:
+                continue
+            if len(set(values)) == 1:
+                identical += 1
+                continue
+            sets += 1
+            if values[0] > max(values[1:]):
+                first_max += 1
+        analytes[analyte] = {
+            "first_max": first_max, "sets": sets, "identical": identical,
+        }
+    total_first = sum(a["first_max"] for a in analytes.values())
+    total_sets = sum(a["sets"] for a in analytes.values())
+    return {
+        "analytes": analytes,
+        "first_max": total_first,
+        "sets": total_sets,
+        "p": binomial_tail(total_first, total_sets, 1 / 3) if total_sets else None,
+    }
+
+
 def check_replicate_order(groups: dict) -> None:
     print("\n" + "=" * 72)
     print("CHECK 1  Replicate-order bias")
@@ -104,31 +139,19 @@ def check_replicate_order(groups: dict) -> None:
     print("applies to every analyte, so it is not a choice made after seeing")
     print("which ones looked interesting.\n")
 
-    total_first = total_sets = total_dropped = 0
-    for analyte in sorted({a for a, _ in groups}):
-        first_max = sets = dropped = 0
-        for key in [k for k in groups if k[0] == analyte]:
-            values = [v for _, v in groups[key]]
-            if len(values) < 3:
-                continue
-            if len(set(values)) == 1:
-                dropped += 1
-                continue
-            sets += 1
-            if values[0] > max(values[1:]):
-                first_max += 1
-        total_dropped += dropped
-        if not sets:
+    result = replicate_order(groups)
+    for analyte, count in result["analytes"].items():
+        dropped = count["identical"]
+        if not count["sets"]:
             print(f"  {analyte:16} no informative triplicates ({dropped} identical)")
             continue
-        total_first += first_max
-        total_sets += sets
         suffix = f"   ({dropped} identical, excluded)" if dropped else ""
-        print(f"  {analyte:16} first reading highest in {first_max}/{sets}{suffix}")
+        print(f"  {analyte:16} first reading highest in "
+              f"{count['first_max']}/{count['sets']}{suffix}")
 
-    if total_sets:
-        p = binomial_tail(total_first, total_sets, 1 / 3)
-        print(f"\n  overall: {total_first}/{total_sets} triplicates")
+    if result["sets"]:
+        p = result["p"]
+        print(f"\n  overall: {result['first_max']}/{result['sets']} triplicates")
         print(f"  P(this many or more by chance) = {p:.4f}")
         if p < 0.05:
             print("\n  -> Not chance. Something makes the first reading read high:")
@@ -218,18 +241,26 @@ METHOD_SPECS = {
 }
 
 
-def check_method_fit(rows: list[dict]) -> set[str]:
+# Verdicts from method_fit that mean a column is not a measurement.
+UNUSABLE_VERDICTS = {"unknown_method", "wrong_test", "wrong_range"}
+
+
+def method_fit(rows: list[dict]) -> list[dict]:
     """Were the samples inside the part of the range the method can resolve?
 
     A method is not simply right or wrong for a sample; it has a span, and
     readings crowded against the bottom of that span are noise wearing the
     costume of data. This check exists because the first batch contained
     exactly that, and nothing else in the pipeline would have caught it.
-    """
-    print(chr(10) + "=" * 72)
-    print("CHECK 5  Method range against what was measured")
-    print("=" * 72)
 
+    One entry per method, with a `verdict`:
+      unknown_method  no instrument or procedure recorded
+      wrong_test      most readings fall below the method's floor
+      wrong_range     one resolvable step is a large share of every reading
+      low_in_range    in range, but in its bottom tenth
+      ok              nothing to report
+    Methods with no published specification here are left out.
+    """
     by_method: dict[str, list[float]] = defaultdict(list)
     analyte_of: dict[str, str] = {}
     for row in rows:
@@ -238,50 +269,85 @@ def check_method_fit(rows: list[dict]) -> set[str]:
             analyte_of[row["method"]] = row["analyte"]
         except (KeyError, ValueError):
             continue
-    unusable: set[str] = set()
 
-    unknown = [m for m in by_method if m == "UNKNOWN"]
+    out: list[dict] = []
     for method in sorted(by_method):
         values = by_method[method]
+        entry: dict = {
+            "method": method,
+            "analyte": analyte_of[method],
+            "n": len(values),
+            "min": min(values),
+            "max": max(values),
+            "verdict": "ok",
+        }
         if method == "UNKNOWN":
-            print(f"  UNKNOWN method: {len(values)} readings")
-            print("     No instrument or procedure recorded. The readings cannot")
-            print("     be assessed at all, and must not be used until the")
-            print("     laboratory says how they were produced.")
-            unusable.add(analyte_of[method])
+            entry["verdict"] = "unknown_method"
+            out.append(entry)
             continue
         if method not in METHOD_SPECS:
             continue
         low, high, step, label = METHOD_SPECS[method]
-        lo, hi = min(values), max(values)
-        position = hi / high * 100
         under = [v for v in values if v < low]
-        negative = [v for v in values if v < 0]
-        print(f"  {label}")
-        print(f"     method range {low}-{high}; samples {lo:g}-{hi:g} "
-              f"(top sample at {position:.0f}% of range)")
-        if under:
-            print(f"     {len(under)} of {len(values)} readings are BELOW the "
+        entry.update(
+            low=low, high=high, step=step, label=label,
+            position=entry["max"] / high * 100,
+            under=len(under),
+            negative=len([v for v in values if v < 0]),
+        )
+        if len(under) > len(values) / 2:
+            entry["verdict"] = "wrong_test"
+        if step:
+            lo, hi = entry["min"], entry["max"]
+            entry["step_worst"] = step / lo * 100 if lo else float("inf")
+            entry["step_best"] = step / hi * 100 if hi else float("inf")
+            if entry["step_best"] > 10:
+                entry["verdict"] = "wrong_range"
+        elif entry["position"] < 10 and not under:
+            entry["verdict"] = "low_in_range"
+        out.append(entry)
+    return out
+
+
+def check_method_fit(rows: list[dict]) -> set[str]:
+    """Print the method-range check and return the analytes it rules out."""
+    print(chr(10) + "=" * 72)
+    print("CHECK 5  Method range against what was measured")
+    print("=" * 72)
+
+    unusable: set[str] = set()
+    for entry in method_fit(rows):
+        if entry["verdict"] in UNUSABLE_VERDICTS:
+            unusable.add(entry["analyte"])
+        if entry["verdict"] == "unknown_method":
+            print(f"  UNKNOWN method: {entry['n']} readings")
+            print("     No instrument or procedure recorded. The readings cannot")
+            print("     be assessed at all, and must not be used until the")
+            print("     laboratory says how they were produced.")
+            continue
+        low, high, step = entry["low"], entry["high"], entry["step"]
+        print(f"  {entry['label']}")
+        print(f"     method range {low}-{high}; samples {entry['min']:g}-"
+              f"{entry['max']:g} (top sample at {entry['position']:.0f}% of range)")
+        if entry["under"]:
+            print(f"     {entry['under']} of {entry['n']} readings are BELOW the "
                   f"method's floor of {low:g}")
-            if negative:
-                print(f"     {len(negative)} of them are negative, which is not "
+            if entry["negative"]:
+                print(f"     {entry['negative']} of them are negative, which is not "
                       "a concentration at all:")
                 print("     the instrument extrapolated off the bottom of its")
                 print("     calibration and said so on screen.")
-            if len(under) > len(values) / 2:
-                unusable.add(analyte_of[method])
+            if entry["under"] > entry["n"] / 2:
                 print()
                 print("     -> WRONG TEST. Most readings fall outside the range")
                 print("        this method is calibrated for, so most of this")
                 print("        column is not a measurement. A test covering the")
                 print("        concentrations actually present is needed.")
         if step:
-            worst = step / lo * 100 if lo else float("inf")
-            best = step / hi * 100 if hi else float("inf")
             print(f"     smallest resolvable step {step}: "
-                  f"{best:.0f}-{worst:.0f}% of the readings themselves")
-            if best > 10:
-                unusable.add(analyte_of[method])
+                  f"{entry['step_best']:.0f}-{entry['step_worst']:.0f}% of the "
+                  "readings themselves")
+            if entry["step_best"] > 10:
                 print()
                 print("     -> WRONG RANGE. One step of this method is a large")
                 print("        fraction of every value it returned here. These")
@@ -289,7 +355,7 @@ def check_method_fit(rows: list[dict]) -> set[str]:
                 print("        other or from zero, and no threshold comparison")
                 print("        based on them can stand. A low-range method is")
                 print("        required and the measurement must be repeated.")
-        elif position < 10 and not under:
+        elif entry["verdict"] == "low_in_range":
             print("     -> Readings sit in the bottom tenth of the range;")
             print("        treat small differences between them with care.")
         print()
